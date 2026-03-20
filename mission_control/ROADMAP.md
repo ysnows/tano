@@ -32,14 +32,15 @@ Integrate into existing iOS/Android projects or create standalone apps.
 - [x] @tano/plugin-camera — takePicture, pickImage (4 tests)
 - [x] All 11 plugins: 57 tests total
 
-### Phase 5: CLI Tooling — IN PROGRESS
+### Phase 5: CLI Tooling — MOSTLY COMPLETE
 - [x] `tano create <name>` — project scaffolding with default template
 - [x] `tano doctor` — environment check (Bun, Xcode, simulators, Android SDK)
+- [x] `tano dev` — Bun server + file watch + opens iOS Simulator
+- [x] `tano build ios` — bundles server + web via Bun.build, runs xcodebuild
+- [x] `tano run ios` — build + install + launch on simulator
 - [x] CLI framework with help, version, command routing
-- [x] Default project template (server.js + web UI + tano.config.ts)
-- [ ] `tano dev` — dev server + simulator management + hot reload
-- [ ] `tano build ios` / `tano build android`
-- [ ] `tano run ios` / `tano run android`
+- [x] Default project template (server.ts + web UI + tano.config.ts)
+- [ ] `tano build android` / `tano run android` (after Phase 6)
 - [ ] `tano plugin add/create`
 
 ### Phase 6: Android Sync
