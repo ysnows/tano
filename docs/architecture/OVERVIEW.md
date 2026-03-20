@@ -216,6 +216,28 @@ tano build android:
 - File system access sandboxed to app container
 - No eval() or dynamic code execution in production mode
 
+## Implementation Status
+
+| Package | Path | Tests | Status |
+|---------|------|-------|--------|
+| TanoCore | `packages/core/` | 40 | Complete — JSC runtime, Bun API shims, HTTP server |
+| TanoBridge | `packages/bridge/` | 29 | Complete — UDS, FrameCodec, PluginRouter |
+| TanoWebView | `packages/webview/` | 41 | Complete — WKWebView, bridge JS, message handler |
+| plugin-sqlite | `packages/plugins/sqlite/` | 7 | Complete |
+| plugin-clipboard | `packages/plugins/clipboard/` | 4 | Complete |
+| plugin-haptics | `packages/plugins/haptics/` | 6 | Complete |
+| plugin-keychain | `packages/plugins/keychain/` | 5 | Complete |
+| plugin-fs | `packages/plugins/fs/` | 7 | Complete |
+| plugin-crypto | `packages/plugins/crypto/` | 8 | Complete |
+| plugin-biometrics | `packages/plugins/biometrics/` | 3 | Complete (iOS stub on macOS) |
+| plugin-share | `packages/plugins/share/` | 4 | Complete (iOS stub on macOS) |
+| plugin-notifications | `packages/plugins/notifications/` | 5 | Complete (iOS stub on macOS) |
+| plugin-http | `packages/plugins/http/` | 4 | Complete |
+| plugin-camera | `packages/plugins/camera/` | 4 | Complete (iOS stub on macOS) |
+| @tano/cli | `packages/cli/` | — | Complete — create, dev, build, run, doctor |
+| Demo app | `examples/tano-demo/` | — | Created — wires all packages for simulator |
+| **Total** | **16 packages** | **167** | |
+
 ## References
 
 - `refs/bun/` — Bun source for API compatibility reference

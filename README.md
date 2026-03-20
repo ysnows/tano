@@ -325,16 +325,29 @@ JSC runs on both iOS (native) and Android (embedded), keeping the engine consist
 ```
 tano/
 ├── packages/
-│   ├── core/                   # TanoJSC runtime (JSC + Bun API shims)
-│   ├── bridge/                 # IPC protocol (UDS, HTTP, typed RPC)
-│   ├── webview/                # WebView container (iOS + Android)
-│   ├── cli/                    # tano CLI
-│   └── plugins/                # Official plugins
-├── templates/                  # Starter templates
-├── examples/                   # Example apps
-├── refs/                       # Reference projects (bun, electrobun)
-├── docs/                       # Documentation
-└── mission_control/            # Development roadmap & tasks
+│   ├── core/                   # TanoJSC runtime (JSC + Bun API shims) — 40 tests
+│   ├── bridge/                 # IPC protocol (UDS, FrameCodec, PluginRouter) — 29 tests
+│   ├── webview/                # WebView container (WKWebView + bridge.js) — 41 tests
+│   ├── cli/                    # tano CLI (create, dev, build, run, doctor)
+│   └── plugins/                # 11 official plugins — 57 tests
+│       ├── sqlite/             #   SQLite database
+│       ├── clipboard/          #   Copy/paste
+│       ├── haptics/            #   Haptic feedback
+│       ├── keychain/           #   Key-value storage
+│       ├── fs/                 #   File system
+│       ├── crypto/             #   Encryption & hashing
+│       ├── biometrics/         #   Face ID / Touch ID
+│       ├── share/              #   Share sheet
+│       ├── notifications/      #   Local notifications
+│       ├── http/               #   Native HTTP client
+│       └── camera/             #   Camera & photo picker
+├── examples/
+│   ├── ios-demo/               # Original EdgeJS demo (reference)
+│   ├── android-demo/           # Original Android demo (reference)
+│   └── tano-demo/              # New Tano demo app (all plugins wired)
+├── docs/                       # Architecture & design docs
+├── mission_control/            # Roadmap, tasks & progress logs
+└── refs/                       # Reference repos (bun, electrobun)
 ```
 
 ## References
