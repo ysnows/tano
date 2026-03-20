@@ -88,6 +88,9 @@ public final class TanoRuntime: @unchecked Sendable {
     /// inside `performOnJSCThread` blocks.
     var jsContext: JSContext?
 
+    /// Timer manager (setTimeout / setInterval).
+    private var timers: TanoTimers?
+
     // MARK: Init
 
     public init(config: TanoConfig) {
@@ -164,10 +167,15 @@ public final class TanoRuntime: @unchecked Sendable {
             print("[TanoJSC] Unhandled exception: \(message)")
         }
 
-        // 3. Inject globals
+        // 3. Create timers (needs jscPerform)
+        timers = TanoTimers(jscPerform: { [weak self] block in
+            self?.performOnJSCThread(block)
+        })
+
+        // 4. Inject globals
         injectGlobals(into: context)
 
-        // 4. Evaluate server entry script (if provided and file exists)
+        // 5. Evaluate server entry script (if provided and file exists)
         if !config.serverEntry.isEmpty {
             let entryPath = config.serverEntry
             if FileManager.default.fileExists(atPath: entryPath) {
@@ -184,13 +192,15 @@ public final class TanoRuntime: @unchecked Sendable {
             }
         }
 
-        // 5. Mark as running
+        // 6. Mark as running
         state = .running
 
-        // 6. Run the run loop — blocks until CFRunLoopStop is called.
+        // 7. Run the run loop — blocks until CFRunLoopStop is called.
         CFRunLoopRun()
 
-        // 7. Cleanup after run loop exits
+        // 8. Cleanup after run loop exits
+        timers?.cancelAll()
+        timers = nil
         jsContext = nil
 
         runLoopLock.lock()
@@ -211,5 +221,8 @@ public final class TanoRuntime: @unchecked Sendable {
 
         // console.log/warn/error/info/debug → OSLog
         TanoConsole.inject(into: context)
+
+        // setTimeout / setInterval / clearTimeout / clearInterval
+        timers?.inject(into: context)
     }
 }
