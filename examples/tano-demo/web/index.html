@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tano Demo</title>
+    <style>
+        body { font-family: -apple-system, system-ui; margin: 20px; background: #f5f5f5; }
+        h1 { color: #333; }
+        .card { background: white; border-radius: 12px; padding: 16px; margin: 12px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        button { background: #007AFF; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 16px; margin: 4px; }
+        button:active { opacity: 0.7; }
+        #output { font-family: monospace; white-space: pre-wrap; background: #1a1a2e; color: #0f0; padding: 12px; border-radius: 8px; min-height: 100px; margin-top: 12px; }
+        .section { margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Tano Demo</h1>
+
+    <div class="card section">
+        <h3>Server</h3>
+        <button onclick="testServer()">Test Server</button>
+        <button onclick="testInfo()">API Info</button>
+    </div>
+
+    <div class="card section">
+        <h3>Plugins</h3>
+        <button onclick="testClipboard()">Clipboard</button>
+        <button onclick="testHaptics()">Haptics</button>
+        <button onclick="testKeychain()">Keychain</button>
+        <button onclick="testFS()">File System</button>
+        <button onclick="testSQLite()">SQLite</button>
+        <button onclick="testCrypto()">Crypto</button>
+    </div>
+
+    <div class="card">
+        <h3>Output</h3>
+        <div id="output">Ready.\n</div>
+    </div>
+
+    <script>
+    function log(msg) {
+        document.getElementById('output').textContent += msg + '\n';
+    }
+
+    async function testServer() {
+        try {
+            var res = await fetch('/api/info');
+            var data = await res.json();
+            log('Server: ' + JSON.stringify(data));
+        } catch(e) { log('Error: ' + e.message); }
+    }
+
+    async function testInfo() {
+        try {
+            var res = await fetch('/');
+            var text = await res.text();
+            log('HTML length: ' + text.length);
+        } catch(e) { log('Error: ' + e.message); }
+    }
+
+    async function testClipboard() {
+        try {
+            await window.Tano.invoke('clipboard', 'copy', { text: 'Hello from Tano!' });
+            var result = await window.Tano.invoke('clipboard', 'read', {});
+            log('Clipboard: ' + JSON.stringify(result));
+        } catch(e) { log('Clipboard error: ' + e.message); }
+    }
+
+    async function testHaptics() {
+        try {
+            await window.Tano.invoke('haptics', 'impact', { style: 'medium' });
+            log('Haptics: triggered medium impact');
+        } catch(e) { log('Haptics error: ' + e.message); }
+    }
+
+    async function testKeychain() {
+        try {
+            await window.Tano.invoke('keychain', 'set', { key: 'demo', value: 'hello' });
+            var result = await window.Tano.invoke('keychain', 'get', { key: 'demo' });
+            log('Keychain: ' + JSON.stringify(result));
+        } catch(e) { log('Keychain error: ' + e.message); }
+    }
+
+    async function testFS() {
+        try {
+            await window.Tano.invoke('fs', 'write', { path: 'test.txt', content: 'Hello Tano FS!' });
+            var result = await window.Tano.invoke('fs', 'read', { path: 'test.txt' });
+            log('FS: ' + JSON.stringify(result));
+        } catch(e) { log('FS error: ' + e.message); }
+    }
+
+    async function testSQLite() {
+        try {
+            var db = await window.Tano.invoke('sqlite', 'open', { path: 'demo.db' });
+            await window.Tano.invoke('sqlite', 'run', { handle: db, sql: 'CREATE TABLE IF NOT EXISTS demo (id INTEGER PRIMARY KEY, name TEXT)' });
+            await window.Tano.invoke('sqlite', 'run', { handle: db, sql: 'INSERT INTO demo (name) VALUES (?)', params: ['Tano'] });
+            var rows = await window.Tano.invoke('sqlite', 'query', { handle: db, sql: 'SELECT * FROM demo' });
+            log('SQLite: ' + JSON.stringify(rows));
+            await window.Tano.invoke('sqlite', 'close', { handle: db });
+        } catch(e) { log('SQLite error: ' + e.message); }
+    }
+
+    async function testCrypto() {
+        try {
+            var hash = await window.Tano.invoke('crypto', 'hash', { algorithm: 'sha256', data: 'hello tano' });
+            var uuid = await window.Tano.invoke('crypto', 'randomUUID', {});
+            log('Crypto hash: ' + JSON.stringify(hash));
+            log('Crypto UUID: ' + JSON.stringify(uuid));
+        } catch(e) { log('Crypto error: ' + e.message); }
+    }
+    </script>
+</body>
+</html>
