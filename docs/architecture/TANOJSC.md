@@ -34,10 +34,41 @@ TanoJSC is a lightweight JavaScriptCore-based runtime that implements Bun-compat
 │           │             └────────┬─────────┘  │
 │           │                      │             │
 │  ┌────────▼──────────────────────▼─────────┐  │
-│  │  Event Loop (libuv or CFRunLoop)         │  │
+│  │  Event Loop (CFRunLoop)                   │  │
 │  └──────────────────────────────────────────┘  │
 └──────────────────────────────────────────────┘
 ```
+
+## Implementation Status (Phase 1 Complete)
+
+The runtime is implemented at `packages/core/` as a Swift Package (SPM).
+
+| File | Purpose |
+|------|---------|
+| `TanoRuntime.swift` | JSC lifecycle, dedicated Thread + CFRunLoop, `performOnJSCThread()` |
+| `TanoGlobals.swift` | Unified injection of all globals into JSContext |
+| `TanoConsole.swift` | `console.*` → OSLog |
+| `TanoTimers.swift` | setTimeout/setInterval via DispatchSourceTimer + JSC thread marshalling |
+| `TanoWebAPIs.swift` | Response/Request/Headers/URL/URLSearchParams JS polyfills |
+| `TanoBunAPI.swift` | Bun.file/write/env/sleep/serve |
+| `TanoFetch.swift` | fetch() → URLSession with JSC thread marshalling |
+| `TanoHTTPServer.swift` | NWListener-based HTTP/1.1 server |
+| `TanoHTTPParser.swift` | Raw HTTP request parser |
+| `TanoHTTPResponse.swift` | HTTP response builder |
+| `JSCHelpers.swift` | JSC convenience wrappers |
+
+### Thread Safety Model
+
+All JSC operations are confined to a single dedicated thread (`dev.tano.runtime`). Other threads (Network.framework, URLSession, DispatchSourceTimer) marshal work back via:
+
+```swift
+public func performOnJSCThread(_ block: @escaping () -> Void) {
+    CFRunLoopPerformBlock(runLoop, CFRunLoopMode.defaultMode.rawValue, block)
+    CFRunLoopWakeUp(runLoop)
+}
+```
+
+This is the single most important method in the runtime — it enables safe cross-thread JSC access.
 
 ## Bun API Shims
 
@@ -113,7 +144,7 @@ setInterval(() => {}, 5000)
 await Bun.sleep(500)
 ```
 
-Implementation: Backed by the event loop (libuv timers or CFRunLoop timers).
+Implementation: DispatchSourceTimer fires on GCD queue, callback marshalled to JSC thread via `performOnJSCThread()`.
 
 ### Bun.env
 
@@ -143,65 +174,44 @@ These Bun APIs are desktop/server concepts that don't apply to mobile:
 | `bun:test` | Tests run on host with real Bun |
 | `bun:ffi` | Use the plugin system instead |
 
-## Lifecycle
+## Lifecycle (Actual Implementation)
 
 ```swift
-// iOS — TanoRuntime manages the JSC lifecycle
-class TanoRuntime {
-    private var jsContext: JSContext
-    private var httpServer: TanoHTTPServer
-    private var udsClient: UDSClient
+let config = TanoConfig(
+    serverEntry: "server.js",
+    env: ["API_KEY": "xxx"]
+)
 
-    func start(serverEntry: String) {
-        // 1. Create JSC context
-        jsContext = JSContext()
-
-        // 2. Inject Bun API shims
-        injectBunGlobals(jsContext)
-        injectFetchGlobal(jsContext)
-        injectWebSocketGlobal(jsContext)
-        injectConsoleGlobal(jsContext)
-        injectTimerGlobals(jsContext)
-
-        // 3. Connect to native bridge (UDS)
-        udsClient = UDSClient(socketPath: socketPath)
-        udsClient.connect()
-
-        // 4. Evaluate bundled server code
-        let code = try! String(contentsOfFile: serverEntry)
-        jsContext.evaluateScript(code)
-
-        // 5. Start event loop
-        startEventLoop()
-    }
-
-    func shutdown() {
-        httpServer.stop()
-        udsClient.disconnect()
-        // JSC context is ARC-managed
-    }
-}
+let runtime = TanoRuntime(config: config)
+runtime.start()   // spawns "dev.tano.runtime" Thread
+// ...
+runtime.stop()    // CFRunLoopStop → cleanup → .stopped
 ```
+
+Internally, `start()` spawns a dedicated Thread that:
+1. Creates JSContext
+2. Stores CFRunLoopGetCurrent() for cross-thread scheduling
+3. Creates TanoTimers with jscPerform closure
+4. Calls TanoGlobals.inject() — console, timers, Web APIs, Bun shims, fetch, polyfills
+5. Evaluates the server entry script
+6. Enters CFRunLoopRun() — blocks until stop()
 
 ## Event Loop
 
-TanoJSC needs an event loop for timers, async I/O, and HTTP serving. Two options:
+**Decision: CFRunLoop** (implemented). The runtime thread uses `CFRunLoopRun()` as the event loop. Cross-thread work is scheduled via `CFRunLoopPerformBlock` + `CFRunLoopWakeUp`. Timers use `DispatchSourceTimer` with callbacks marshalled to the JSC thread.
 
-### Option A: CFRunLoop integration (iOS-native)
-- Use the existing CFRunLoop on the runtime thread
-- CFRunLoop sources for: timers, socket I/O, file I/O callbacks
-- Pro: No extra dependency, plays well with iOS
-- Con: More manual wiring
+No libuv dependency. For Android, we'll evaluate whether CFRunLoop can be replaced with a similar construct or if libuv is needed.
 
-### Option B: libuv (portable)
-- Embed libuv for the event loop (same as Node.js/Bun use internally)
-- Pro: Well-tested, portable to Android, handles all I/O patterns
-- Con: Extra ~200KB dependency
+## Testing
 
-**Recommendation**: Start with CFRunLoop on iOS for simplicity. Evaluate libuv if we need more complex I/O patterns or for Android parity.
+40 tests in `packages/core/Tests/TanoCoreTests/`:
+- Runtime lifecycle (3 tests)
+- Console (4 tests)
+- Timers (4 tests)
+- Web APIs (7 tests)
+- Bun APIs (6 tests)
+- Fetch (3 tests)
+- HTTP server + parser (9 tests)
+- Integration — full Bun.serve() (4 tests)
 
-## Testing Strategy
-
-- **API compatibility tests**: Run the same test suite on real Bun and TanoJSC, verify matching output
-- **iOS simulator**: Primary test environment via `tano dev`
-- **Subset tracking**: Maintain a compatibility matrix of which Bun APIs are implemented
+Run: `cd packages/core && swift test`

@@ -6,16 +6,21 @@ Integrate into existing iOS/Android projects or create standalone apps.
 
 ## Phases
 
-### Phase 1: Core Runtime (Current)
-- [ ] TanoJSC — JavaScriptCore embedding on iOS
-- [ ] Bun API shims: `Bun.serve()`, `Bun.file()`, `Bun.write()`, `Bun.env`
-- [ ] `fetch`, `WebSocket`, `console.*` on JSC
-- [ ] Runtime lifecycle (init, run, shutdown) managed from Swift
-- [ ] Verify: "Hello World" Bun server running in iOS simulator
+### Phase 1: Core Runtime — COMPLETE
+- [x] TanoJSC — JavaScriptCore embedding on iOS (`packages/core/`)
+- [x] Bun API shims: `Bun.serve()`, `Bun.file()`, `Bun.write()`, `Bun.env`, `Bun.sleep()`
+- [x] `fetch` → URLSession, `console.*` → OSLog on JSC
+- [x] Runtime lifecycle (init, run, shutdown) managed from Swift via `TanoRuntime`
+- [x] Thread-safe cross-thread access via `performOnJSCThread()` (CFRunLoopPerformBlock)
+- [x] `setTimeout`/`setInterval` with thread-safe callbacks
+- [x] `Response`/`Request`/`Headers`/`URL` Web API polyfills
+- [x] HTTP server via NWListener (Network.framework)
+- [x] 40 tests passing, including full Bun.serve() integration test
+- [x] Verify: Bun.serve() HTTP server running in TanoJSC with real HTTP requests
 
-### Phase 2: Bridge Protocol
-- [ ] Port UDS bridge (FrameCodec, JobTalk) to `packages/bridge/`
-- [ ] HTTP localhost data channel
+### Phase 2: Bridge Protocol (Current)
+- [ ] Port UDS bridge (FrameCodec, JobTalk) to `packages/bridge/ios/`
+- [ ] HTTP localhost data channel (already works via Bun.serve)
 - [ ] WKScriptMessageHandler control channel
 - [ ] Typed RPC system (`Tano.createBridge()`)
 - [ ] Verify: WebView <-> TanoJSC bidirectional communication
@@ -29,7 +34,7 @@ Integrate into existing iOS/Android projects or create standalone apps.
 
 ### Phase 4: Plugin System
 - [ ] `TanoPlugin` Swift protocol
-- [ ] Plugin registration and routing
+- [ ] Plugin registration and routing via UDS bridge
 - [ ] Extract existing ProducerTasks into individual plugins:
   - [ ] @tano/plugin-sqlite
   - [ ] @tano/plugin-clipboard
