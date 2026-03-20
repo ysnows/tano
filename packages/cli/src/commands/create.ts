@@ -7,8 +7,25 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+const AVAILABLE_TEMPLATES = ["default", "react"];
+
 export default async function create(args: string[]): Promise<void> {
-    const appName = args[0];
+    // Parse --template flag
+    let template = "default";
+    const filteredArgs: string[] = [];
+
+    for (let i = 0; i < args.length; i++) {
+        if (args[i] === "--template" && i + 1 < args.length) {
+            template = args[i + 1];
+            i++; // skip the template value
+        } else if (args[i].startsWith("--template=")) {
+            template = args[i].split("=")[1];
+        } else {
+            filteredArgs.push(args[i]);
+        }
+    }
+
+    const appName = filteredArgs[0];
 
     if (!appName) {
         log.error("Please provide a project name:");
@@ -16,6 +33,12 @@ export default async function create(args: string[]): Promise<void> {
         log.info("");
         log.info("Example:");
         log.info("  tano create my-app");
+        log.info("  tano create my-app --template react");
+        log.info("");
+        log.info("Available templates:");
+        for (const t of AVAILABLE_TEMPLATES) {
+            log.info(`  ${t}${t === "default" ? " (default)" : ""}`);
+        }
         process.exit(1);
     }
 
@@ -27,6 +50,17 @@ export default async function create(args: string[]): Promise<void> {
         process.exit(1);
     }
 
+    // Validate template
+    if (!AVAILABLE_TEMPLATES.includes(template)) {
+        log.error(`Unknown template "${template}".`);
+        log.info("");
+        log.info("Available templates:");
+        for (const t of AVAILABLE_TEMPLATES) {
+            log.info(`  ${t}${t === "default" ? " (default)" : ""}`);
+        }
+        process.exit(1);
+    }
+
     const targetDir = resolve(process.cwd(), appName);
 
     if (existsSync(targetDir)) {
@@ -35,10 +69,13 @@ export default async function create(args: string[]): Promise<void> {
     }
 
     log.heading(`Creating Tano project: ${appName}`);
+    if (template !== "default") {
+        log.info(`Using template: ${template}`);
+    }
     log.info("");
 
     // Locate templates directory
-    const templatesDir = resolve(__dirname, "../../templates/default");
+    const templatesDir = resolve(__dirname, `../../templates/${template}`);
 
     if (!existsSync(templatesDir)) {
         log.error("Template directory not found. This is a bug in @tano/cli.");
@@ -95,6 +132,7 @@ function copyDir(src: string, dest: string, appName: string): void {
         } else {
             let content = readFileSync(srcPath, "utf-8");
             content = content.replace(/\{\{APP_NAME\}\}/g, appName);
+            content = content.replace(/\{\{APP_NAME_LOWER\}\}/g, appName.toLowerCase());
             writeFileSync(destPath, content, "utf-8");
         }
     }
