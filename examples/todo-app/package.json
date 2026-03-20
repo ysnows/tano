@@ -1,0 +1,20 @@
+{
+    "name": "todo-app",
+    "version": "1.0.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "tano dev",
+        "dev:server": "bun run src/server/index.ts",
+        "build:ios": "tano build ios",
+        "build:android": "tano build android"
+    },
+    "dependencies": {
+        "@tano/bridge": "^0.1.0"
+    },
+    "devDependencies": {
+        "@tano/cli": "^0.1.0",
+        "bun-types": "latest",
+        "typescript": "^5.0.0"
+    }
+}
