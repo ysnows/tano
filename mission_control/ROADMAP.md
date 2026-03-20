@@ -19,11 +19,16 @@ Integrate into existing iOS/Android projects or create standalone apps.
 - [x] Verify: Bun.serve() HTTP server running in TanoJSC with real HTTP requests
 
 ### Phase 2: Bridge Protocol (Current)
-- [ ] Port UDS bridge (FrameCodec, JobTalk) to `packages/bridge/ios/`
-- [ ] HTTP localhost data channel (already works via Bun.serve)
-- [ ] WKScriptMessageHandler control channel
-- [ ] Typed RPC system (`Tano.createBridge()`)
-- [ ] Verify: WebView <-> TanoJSC bidirectional communication
+- [x] Port UDS bridge (FrameCodec, UDSServer, UDSClient) to `packages/bridge/`
+- [x] TanoBridgeMessage protocol (replaces JobTalk, cleaned of Enconvo naming)
+- [x] TanoPlugin protocol + PluginRouter for message routing
+- [x] BridgeManager coordinating UDS + plugins
+- [x] HTTP localhost data channel (works via Bun.serve from Phase 1)
+- [x] 29 tests passing
+- [ ] WKScriptMessageHandler control channel (→ Phase 3)
+- [ ] `window.Tano.invoke()` JS API (→ Phase 3)
+- [ ] Typed RPC system (→ Phase 3)
+- [ ] Verify: WebView <-> TanoJSC bidirectional communication (→ Phase 3)
 
 ### Phase 3: WebView Layer
 - [ ] TanoWebView (WKWebView wrapper) in `packages/webview/`
