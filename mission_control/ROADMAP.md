@@ -62,8 +62,13 @@ Integrate into existing iOS/Android projects or create standalone apps.
 - [ ] Publish to Maven Central (Android)
 - [ ] Tag v0.1.0 release
 
-### Phase 8: Ecosystem
-- [ ] Plugin marketplace, templates, example apps
+### Phase 8: Ecosystem — COMPLETE
+- [x] React (Vite) starter template with todo app
+- [x] `tano create --template react` flag support
+- [x] Example todo-app with SQLite persistence + clipboard plugin
+- [x] Default template (plain HTML + Bun server)
+- [ ] Vue, Svelte, Next.js templates (future)
+- [ ] Plugin marketplace / npm discovery (future)
 
 ## Test Summary
 | Package | Tests |
