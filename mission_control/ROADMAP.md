@@ -43,17 +43,13 @@ Integrate into existing iOS/Android projects or create standalone apps.
 - [ ] `tano build android` / `tano run android` (after Phase 6)
 - [ ] `tano plugin add/create`
 
-### Phase 6: Android Sync — IN PROGRESS
-- [x] TanoRuntime.kt — runtime lifecycle with HandlerThread + Handler
-- [x] FrameCodec.kt — length-prefixed framing (ByteBuffer)
-- [x] TanoBridgeMessage.kt — message protocol (matches iOS)
-- [x] TanoPlugin.kt + PluginRouter.kt — plugin interface + routing
-- [x] BridgeManager.kt — UDS coordinator
-- [x] TanoWebView.kt — Android WebView + addJavascriptInterface bridge
-- [x] TanoBridgeJS.kt — bridge JS with Android adapter
-- [x] SqlitePlugin.kt, ClipboardPlugin.kt, FSPlugin.kt — 3 plugins ported
+### Phase 6: Android Sync — MOSTLY COMPLETE
+- [x] TanoRuntime.kt — HandlerThread + Handler (mirrors CFRunLoop)
+- [x] FrameCodec.kt, TanoBridgeMessage.kt, TanoPlugin.kt, PluginRouter.kt, BridgeManager.kt
+- [x] TanoWebView.kt + TanoBridgeJS.kt — Android WebView + addJavascriptInterface
+- [x] All 11 plugins ported to Kotlin (SQLite, Clipboard, FS, Haptics, Keychain, Crypto, Biometrics, Share, Notifications, HTTP, Camera)
 - [ ] Integrate jsc-android or edge_embed JNI for actual JSC execution
-- [ ] Gradle build configuration
+- [ ] Gradle build configuration (build.gradle.kts)
 - [ ] `tano build android` / `tano run android` in CLI
 - [ ] End-to-end test on Android emulator
 
