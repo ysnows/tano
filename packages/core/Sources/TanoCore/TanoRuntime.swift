@@ -222,28 +222,14 @@ public final class TanoRuntime: @unchecked Sendable {
 
     // MARK: - Globals Injection
 
-    /// Inject minimal global bindings into the JSContext.
-    ///
-    /// This will be expanded in subsequent tasks (timers, fetch, console, etc.).
+    /// Inject all global bindings into the JSContext via TanoGlobals.
     private func injectGlobals(into context: JSContext) {
-        // Runtime marker so JS code can detect it's running inside Tano.
-        context.setObject("TanoJSC" as NSString, forKeyedSubscript: "__runtime" as NSString)
-
-        // console.log/warn/error/info/debug → OSLog
-        TanoConsole.inject(into: context)
-
-        // setTimeout / setInterval / clearTimeout / clearInterval
-        timers?.inject(into: context)
-
-        // Response / Request / Headers / URLSearchParams polyfills
-        TanoWebAPIs.inject(into: context)
-
-        // Bun.file / Bun.write / Bun.env / Bun.sleep / Bun.serve
-        bunAPI?.inject(into: context)
-
-        // fetch() → URLSession bridge
-        TanoFetch.inject(into: context, jscPerform: { [weak self] block in
-            self?.performOnJSCThread(block)
-        })
+        TanoGlobals.inject(
+            into: context,
+            config: config,
+            timers: timers!,
+            bunAPI: bunAPI!,
+            jscPerform: { [weak self] block in self?.performOnJSCThread(block) }
+        )
     }
 }
