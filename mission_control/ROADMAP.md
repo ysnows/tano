@@ -31,7 +31,7 @@ Integrate into existing iOS/Android projects or create standalone apps.
 - [ ] @tano/plugin-biometrics — Face ID / Touch ID
 - [x] @tano/plugin-haptics — impact/notification/selection (6 tests)
 - [x] @tano/plugin-fs — read/write/exists/delete/list/mkdir (7 tests)
-- [ ] @tano/plugin-crypto — encryption & hashing
+- [x] @tano/plugin-crypto — hash/hmac/encrypt/decrypt/random via CryptoKit (8 tests)
 - [x] @tano/plugin-keychain — set/get/delete via UserDefaults (5 tests)
 - [ ] @tano/plugin-share — share sheet
 - [ ] @tano/plugin-notifications — local notifications
@@ -69,7 +69,8 @@ Integrate into existing iOS/Android projects or create standalone apps.
 | plugin-haptics | 6 |
 | plugin-keychain | 5 |
 | plugin-fs | 7 |
-| **Total** | **139** |
+| plugin-crypto | 8 |
+| **Total** | **147** |
 
 ## Development Strategy
 - **iOS-first**: Build and test on iOS simulator, then sync to Android
