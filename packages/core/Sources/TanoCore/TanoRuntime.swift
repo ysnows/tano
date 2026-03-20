@@ -208,5 +208,8 @@ public final class TanoRuntime: @unchecked Sendable {
     private func injectGlobals(into context: JSContext) {
         // Runtime marker so JS code can detect it's running inside Tano.
         context.setObject("TanoJSC" as NSString, forKeyedSubscript: "__runtime" as NSString)
+
+        // console.log/warn/error/info/debug → OSLog
+        TanoConsole.inject(into: context)
     }
 }
