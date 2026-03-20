@@ -1,0 +1,19 @@
+{
+  "name": "{{APP_NAME}}",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tano dev",
+    "build:ios": "tano build ios",
+    "build:android": "tano build android"
+  },
+  "dependencies": {
+    "@tano/bridge": "^0.1.0"
+  },
+  "devDependencies": {
+    "@tano/cli": "^0.1.0",
+    "bun-types": "latest",
+    "typescript": "^5.0.0"
+  }
+}

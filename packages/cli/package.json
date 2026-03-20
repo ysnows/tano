@@ -1,0 +1,14 @@
+{
+  "name": "@tano/cli",
+  "version": "0.1.0",
+  "description": "CLI for creating and managing Tano projects",
+  "bin": {
+    "tano": "./src/index.ts"
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "bun run src/index.ts"
+  },
+  "keywords": ["tano", "cli", "mobile", "cross-platform"],
+  "license": "MIT"
+}
