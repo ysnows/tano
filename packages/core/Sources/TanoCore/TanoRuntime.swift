@@ -224,5 +224,8 @@ public final class TanoRuntime: @unchecked Sendable {
 
         // setTimeout / setInterval / clearTimeout / clearInterval
         timers?.inject(into: context)
+
+        // Response / Request / Headers / URLSearchParams polyfills
+        TanoWebAPIs.inject(into: context)
     }
 }
