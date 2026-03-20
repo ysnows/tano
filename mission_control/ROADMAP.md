@@ -30,12 +30,14 @@ Integrate into existing iOS/Android projects or create standalone apps.
 - [ ] Typed RPC system (→ Phase 3)
 - [ ] Verify: WebView <-> TanoJSC bidirectional communication (→ Phase 3)
 
-### Phase 3: WebView Layer
-- [ ] TanoWebView (WKWebView wrapper) in `packages/webview/`
-- [ ] Bridge JS injection (`window.Tano.invoke()`)
-- [ ] HMR client for dev mode
-- [ ] Framework proxy (Vite, Next.js static export)
-- [ ] Verify: HTML page loads, fetch() hits TanoJSC server
+### Phase 3: WebView Layer — COMPLETE
+- [x] TanoWebView (SwiftUI WKWebView wrapper) in `packages/webview/`
+- [x] Bridge JS injection (`window.Tano.invoke/on/send/emit`)
+- [x] WKScriptMessageHandler → PluginRouter integration
+- [x] Dev mode (localhost) and production (bundle) URL loading
+- [x] 41 tests passing
+- [ ] HMR client for dev mode (→ Phase 5 CLI)
+- [ ] Framework proxy (Vite, Next.js static export) (→ Phase 5 CLI)
 
 ### Phase 4: Plugin System
 - [ ] `TanoPlugin` Swift protocol
