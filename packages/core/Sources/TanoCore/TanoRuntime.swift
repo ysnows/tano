@@ -91,6 +91,9 @@ public final class TanoRuntime: @unchecked Sendable {
     /// Timer manager (setTimeout / setInterval).
     private var timers: TanoTimers?
 
+    /// Bun API shim (Bun.file, Bun.write, Bun.env, Bun.sleep, Bun.serve).
+    private var bunAPI: TanoBunAPI?
+
     // MARK: Init
 
     public init(config: TanoConfig) {
@@ -172,6 +175,11 @@ public final class TanoRuntime: @unchecked Sendable {
             self?.performOnJSCThread(block)
         })
 
+        // 3b. Create Bun API shim
+        bunAPI = TanoBunAPI(config: config, jscPerform: { [weak self] block in
+            self?.performOnJSCThread(block)
+        })
+
         // 4. Inject globals
         injectGlobals(into: context)
 
@@ -199,6 +207,8 @@ public final class TanoRuntime: @unchecked Sendable {
         CFRunLoopRun()
 
         // 8. Cleanup after run loop exits
+        bunAPI?.httpServer?.stop()
+        bunAPI = nil
         timers?.cancelAll()
         timers = nil
         jsContext = nil
@@ -227,5 +237,13 @@ public final class TanoRuntime: @unchecked Sendable {
 
         // Response / Request / Headers / URLSearchParams polyfills
         TanoWebAPIs.inject(into: context)
+
+        // Bun.file / Bun.write / Bun.env / Bun.sleep / Bun.serve
+        bunAPI?.inject(into: context)
+
+        // fetch() → URLSession bridge
+        TanoFetch.inject(into: context, jscPerform: { [weak self] block in
+            self?.performOnJSCThread(block)
+        })
     }
 }
