@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+.bun/
+
+# Build output
+dist/
+build/
+*.app
+*.apk
+*.ipa
+*.o
+*.a
+*.so
+*.dylib
+
+# Reference repos (cloned separately)
+refs/
+
+# IDE
+.idea/
+.vscode/
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcshareddata/
+DerivedData/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# Temporary
+.tmp/
+.cache/

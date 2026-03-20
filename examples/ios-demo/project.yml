@@ -1,0 +1,43 @@
+name: EdgeJSDemo
+options:
+  bundleIdPrefix: com.edgejs
+  deploymentTarget:
+    iOS: "15.0"
+  xcodeVersion: "15.0"
+
+targets:
+  EdgeJSDemo:
+    type: application
+    platform: iOS
+    sources:
+      - path: EdgeJSDemo
+        type: group
+    resources:
+      - path: js
+        buildPhase: resources
+        type: folder
+    settings:
+      base:
+        SWIFT_OBJC_BRIDGING_HEADER: EdgeJS-Bridging-Header.h
+        HEADER_SEARCH_PATHS:
+          - "$(PROJECT_DIR)/../../src"
+        OTHER_LDFLAGS:
+          - "-lc++"
+          - "-force_load"
+          - "$(PROJECT_DIR)/Frameworks/libedgejs.a"
+        FRAMEWORK_SEARCH_PATHS:
+          - "$(SDKROOT)/System/Library/Frameworks"
+        INFOPLIST_FILE: EdgeJSDemo/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.edgejs.demo
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+    dependencies:
+      - sdk: JavaScriptCore.framework
+
+  EdgeJSDemoUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: EdgeJSDemoUITests
+    dependencies:
+      - target: EdgeJSDemo

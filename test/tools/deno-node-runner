@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ $# -ge 2 && "$1" == "-p" ]]; then
+  expr="$2"
+  case "$expr" in
+    process.config.variables.asan)
+      echo "undefined"
+      ;;
+    process.config.variables.v8_enable_pointer_compression)
+      echo "undefined"
+      ;;
+    *)
+      deno eval "const value = eval(Deno.args[0]); console.log(value === undefined ? 'undefined' : value);" -- "$expr"
+      ;;
+  esac
+  exit 0
+fi
+
+filtered=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --test-reporter=*|--test-reporter-destination=*|--trace-opt|--trace-file-names|--always-turbofan)
+      shift
+      ;;
+    *)
+      filtered+=("$1")
+      shift
+      ;;
+  esac
+done
+
+exec deno run -A --unstable-detect-cjs "${filtered[@]}"

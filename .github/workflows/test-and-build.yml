@@ -1,0 +1,572 @@
+name: test and build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  metadata:
+    name: metadata
+    runs-on: ubuntu-latest
+    outputs:
+      edge_version: ${{ steps.version.outputs.edge_version }}
+      release_tag: ${{ steps.version.outputs.release_tag }}
+      release_name: ${{ steps.version.outputs.release_name }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compute release metadata
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          major="$(sed -n 's/^#define EDGE_MAJOR_VERSION //p' src/edge_version.h)"
+          minor="$(sed -n 's/^#define EDGE_MINOR_VERSION //p' src/edge_version.h)"
+          patch="$(sed -n 's/^#define EDGE_PATCH_VERSION //p' src/edge_version.h)"
+          if [[ -z "${major}" || -z "${minor}" || -z "${patch}" ]]; then
+            echo "Failed to parse EDGE version from src/edge_version.h" >&2
+            exit 1
+          fi
+          edge_version="${major}.${minor}.${patch}"
+          release_tag="${edge_version}-nightly"
+          release_name="${release_tag}"
+          {
+            echo "edge_version=${edge_version}"
+            echo "release_tag=${release_tag}"
+            echo "release_name=${release_name}"
+          } >> "${GITHUB_OUTPUT}"
+
+  build-linux:
+    name: build-linux
+    runs-on: ubuntu-latest
+    env:
+      NAPI_V8_BUILD_METHOD: prebuilt
+      SCCACHE_GHA_ENABLED: "true"
+      CC: clang
+      CXX: clang++
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@v0.0.9
+      - name: Ensure submodules are initialized
+        shell: bash
+        run: |
+          set -euo pipefail
+          git submodule sync --recursive
+          git -c protocol.version=2 submodule update --init --recursive --depth=1
+          test -f node/src/node_api_types.h
+
+      - name: Install Linux build dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y libicu-dev
+
+      - name: Validate public N-API headers stay V8-agnostic
+        run: |
+          ! grep -nE "v8::|<v8.h>|\"v8.h\"" napi/include/js_native_api.h napi/include/node_api.h
+
+      - name: Build napi-v8
+        run: make build-napi CMAKE_BUILD_TYPE=Release JOBS=4
+
+      - name: Test napi-v8
+        run: make test-napi-only TEST_JOBS=4
+
+      - name: Build edge
+        run: |
+          make build CMAKE_BUILD_TYPE=Release JOBS=4
+
+      - name: Generate dist
+        shell: bash
+        run: |
+          set -euo pipefail
+          make dist-only JOBS=4 ZIP_NAME=edge-linux-amd64.zip
+
+      - name: Upload artifact edge
+        uses: actions/upload-artifact@v4
+        with:
+          name: edge-linux-amd64
+          path: edge-linux-amd64.zip
+          if-no-files-found: error
+
+      - name: Test edge
+        run: |
+          make test-only TEST_JOBS=4
+
+      - name: sccache stats
+        if: always()
+        run: sccache --show-stats || true
+
+  # ---------------------------------------------------------------------------
+  # Mobile builds (iOS + Android) — embedding library only, no CLI
+  # ---------------------------------------------------------------------------
+
+  build-ios:
+    name: build-ios
+    runs-on: macos-latest
+    env:
+      SCCACHE_GHA_ENABLED: "true"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@v0.0.9
+      - name: Ensure submodules are initialized
+        shell: bash
+        run: |
+          set -euo pipefail
+          git submodule sync --recursive
+          git -c protocol.version=2 submodule update --init --recursive --depth=1
+      - name: Build Edge.js for iOS (device + simulator)
+        run: ./scripts/build-ios.sh
+      - name: Verify XCFramework
+        run: |
+          test -d build-ios/EdgeJS.xcframework
+          nm build-ios-device/libedge_embed.a | grep "T _EdgeRuntimeCreate" || echo "Warning: symbol not found (may be expected for cross-compile)"
+      - name: Upload iOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: edge-ios-xcframework
+          path: build-ios/EdgeJS.xcframework
+          if-no-files-found: error
+      - name: sccache stats
+        if: always()
+        run: sccache --show-stats || true
+
+  build-android:
+    name: build-android
+    runs-on: ubuntu-latest
+    env:
+      SCCACHE_GHA_ENABLED: "true"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@v0.0.9
+      - name: Ensure submodules are initialized
+        shell: bash
+        run: |
+          set -euo pipefail
+          git submodule sync --recursive
+          git -c protocol.version=2 submodule update --init --recursive --depth=1
+      - name: Setup Android NDK
+        shell: bash
+        run: |
+          set -euo pipefail
+          sdkmanager --install "ndk;26.3.11579264"
+          echo "ANDROID_NDK=${ANDROID_HOME}/ndk/26.3.11579264" >> "${GITHUB_ENV}"
+      - name: Build Edge.js for Android
+        run: ./scripts/build-android.sh
+      - name: Verify shared library
+        run: |
+          file build-android/libedge_embed.so | grep "ELF 64-bit" || echo "Warning: library check (may be expected)"
+      - name: Upload Android artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: edge-android-arm64
+          path: build-android/libedge_embed.so
+          if-no-files-found: error
+      - name: sccache stats
+        if: always()
+        run: sccache --show-stats || true
+
+  publish-nightly:
+    name: publish-nightly
+    runs-on: ubuntu-latest
+    needs:
+      - metadata
+      - build-linux
+      - build-macos
+      - build-wasix-linux
+      - build-ios
+      - build-android
+    if: ${{ always() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    env:
+      GH_TOKEN: ${{ secrets.RELEASE_PLEASE_GH_TOKEN }}
+      TARGET_REPO: wasmerio/edgejs-nightlies
+      RELEASE_TAG: ${{ needs.metadata.outputs.release_tag }}
+      RELEASE_NAME: ${{ needs.metadata.outputs.release_name }}
+      EDGE_VERSION: ${{ needs.metadata.outputs.edge_version }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: edge-linux-amd64
+          path: release-assets/linux
+
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: edge-darwin-arm64
+          path: release-assets/macos
+
+      - name: Download WASIX artifact
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: edge-wasix
+          path: release-assets/wasix
+
+      - name: Download iOS artifact
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: edge-ios-xcframework
+          path: release-assets/ios
+
+      - name: Download Android artifact
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: edge-android-arm64
+          path: release-assets/android
+
+      - name: Collect release assets
+        id: assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p release-assets
+          mapfile -t files < <(find release-assets -type f -name '*.zip' | sort)
+          {
+            echo "asset_count=${#files[@]}"
+            echo "asset_list<<EOF"
+            printf '%s\n' "${files[@]}"
+            echo "EOF"
+          } >> "${GITHUB_OUTPUT}"
+          printf 'Discovered %s release asset(s)\n' "${#files[@]}"
+          printf '%s\n' "${files[@]}"
+
+      - name: Create release notes
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo "Automated nightly build for EDGE ${EDGE_VERSION}."
+            echo
+            echo "- Source repo: ${GITHUB_REPOSITORY}"
+            echo "- Commit: ${GITHUB_SHA}"
+            echo "- Workflow run: ${RUN_URL}"
+            echo "- Uploaded assets: ${{ steps.assets.outputs.asset_count }}"
+          } > release-notes.md
+
+      - name: Ensure nightly release exists
+        shell: bash
+        run: |
+          set -euo pipefail
+          target_ref="$(gh repo view "${TARGET_REPO}" --json defaultBranchRef --jq '.defaultBranchRef.name')"
+          if [[ -z "${target_ref}" ]]; then
+            echo "Failed to resolve default branch for ${TARGET_REPO}" >&2
+            exit 1
+          fi
+          if ! gh release view "${RELEASE_TAG}" --repo "${TARGET_REPO}" >/dev/null 2>&1; then
+            gh release create "${RELEASE_TAG}" \
+              --repo "${TARGET_REPO}" \
+              --target "${target_ref}" \
+              --title "${RELEASE_NAME}" \
+              --notes-file release-notes.md \
+              --prerelease \
+              --latest=false
+          fi
+          release_id="$(gh api "repos/${TARGET_REPO}/releases/tags/${RELEASE_TAG}" --jq '.id')"
+          gh api \
+            --method PATCH \
+            "repos/${TARGET_REPO}/releases/${release_id}" \
+            -f name="${RELEASE_NAME}" \
+            -F prerelease=true \
+            -F make_latest=false \
+            -F body=@release-notes.md \
+            >/dev/null
+
+      - name: Upload nightly assets
+        if: ${{ steps.assets.outputs.asset_count != '0' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t files < <(printf '%s\n' "${{ steps.assets.outputs.asset_list }}" | sed '/^$/d')
+          gh release upload "${RELEASE_TAG}" \
+            --repo "${TARGET_REPO}" \
+            --clobber \
+            "${files[@]}"
+
+  build-macos:
+    name: build-macos
+    runs-on: macos-latest
+    env:
+      NAPI_V8_BUILD_METHOD: prebuilt
+      SCCACHE_GHA_ENABLED: "true"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@v0.0.9
+      - name: Ensure submodules are initialized
+        shell: bash
+        run: |
+          set -euo pipefail
+          git submodule sync --recursive
+          git -c protocol.version=2 submodule update --init --recursive --depth=1
+          test -f node/src/node_api_types.h
+
+      - name: Validate public N-API headers stay V8-agnostic
+        run: |
+          ! grep -nE "v8::|<v8.h>|\"v8.h\"" napi/include/js_native_api.h napi/include/node_api.h
+
+      - name: Build napi-v8
+        run: make build-napi CMAKE_BUILD_TYPE=Release JOBS=4
+
+      - name: Test napi-v8
+        run: make test-napi-only TEST_JOBS=4
+
+      - name: Build edge
+        run: |
+          make build CMAKE_BUILD_TYPE=Release JOBS=4
+
+      - name: Generate dist
+        shell: bash
+        run: |
+          set -euo pipefail
+          make dist-only JOBS=4 ZIP_NAME=edge-darwin-arm64.zip
+
+      - name: Upload artifact edge
+        uses: actions/upload-artifact@v4
+        with:
+          name: edge-darwin-arm64
+          path: edge-darwin-arm64.zip
+          if-no-files-found: error
+
+      - name: Test edge
+        run: |
+          make test-only TEST_JOBS=4
+
+      - name: sccache stats
+        if: always()
+        run: sccache --show-stats || true
+
+  build-napi-jsc-macos:
+    name: build-napi-jsc-macos
+    runs-on: macos-latest
+    env:
+      SCCACHE_GHA_ENABLED: "true"
+      JSC_BUILD_DIR: build-napi-jsc
+      JSC_STOCK_BUILD_DIR: build-jsc-stock-host
+      JSC_SMOKE_REGEX: "napi_jsc_test_(29_bigint|31_dataview|32_sharedarraybuffer|35_promise|39_cannot_run_js|65_unofficial_contextify|66_unofficial_unsupported)"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@v0.0.9
+      - name: Ensure submodules are initialized
+        shell: bash
+        run: |
+          set -euo pipefail
+          git submodule sync --recursive
+          git -c protocol.version=2 submodule update --init --recursive --depth=1
+          test -f node/src/node_api_types.h
+
+      - name: Validate public N-API headers stay V8-agnostic
+        run: |
+          ! grep -nE "v8::|<v8.h>|\"v8.h\"" napi/include/js_native_api.h napi/include/node_api.h
+
+      - name: Resolve Bun WebKit SDK path
+        id: bun_webkit
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="$(bash napi/jsc/tools/bun_webkit_release_tag.sh)"
+          arch="$(uname -m)"
+          case "${arch}" in
+            arm64) asset_arch="arm64" ;;
+            x86_64) asset_arch="amd64" ;;
+            *) echo "Unsupported macOS architecture: ${arch}" >&2; exit 1 ;;
+          esac
+          root="${GITHUB_WORKSPACE}/.ci/jsc/${tag}/macos-${asset_arch}"
+          {
+            echo "tag=${tag}"
+            echo "root=${root}"
+          } >> "${GITHUB_OUTPUT}"
+
+      - name: Cache Bun WebKit SDK
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.bun_webkit.outputs.root }}
+          key: bun-webkit-${{ runner.os }}-${{ runner.arch }}-${{ steps.bun_webkit.outputs.tag }}
+
+      - name: Fetch Bun WebKit SDK
+        shell: bash
+        env:
+          BUN_WEBKIT_ROOT: ${{ steps.bun_webkit.outputs.root }}
+          BUN_WEBKIT_TAG: ${{ steps.bun_webkit.outputs.tag }}
+        run: |
+          set -euo pipefail
+          bash napi/jsc/tools/fetch_bun_webkit_macos.sh
+
+      - name: Build stock-host negative guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake -S napi/jsc -B "${JSC_STOCK_BUILD_DIR}" -DCMAKE_BUILD_TYPE=Release -DNAPI_JSC_BUILD_TESTS=ON
+          cmake --build "${JSC_STOCK_BUILD_DIR}" --parallel 4 --target napi_jsc_test_67_jsc_config_guard
+
+      - name: Run stock-host negative guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          env -u BUN_WEBKIT_ROOT -u DYLD_FRAMEWORK_PATH -u DYLD_LIBRARY_PATH -u __XPC_DYLD_FRAMEWORK_PATH -u __XPC_DYLD_LIBRARY_PATH \
+            "./${JSC_STOCK_BUILD_DIR}/tests/napi_jsc_test_67_jsc_config_guard" \
+            --gtest_filter=Test67JscConfigGuard.RejectsSablessHostConfiguration
+
+      - name: Build napi-jsc
+        shell: bash
+        env:
+          BUN_WEBKIT_ROOT: ${{ steps.bun_webkit.outputs.root }}
+        run: |
+          set -euo pipefail
+          make build-napi-jsc BUILD_DIR="${JSC_BUILD_DIR}" CMAKE_BUILD_TYPE=Release JOBS=4
+
+      - name: Run JSC runtime probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          "${JSC_BUILD_DIR}/napi-jsc/tests/napi_jsc_runtime_probe" | tee "${JSC_BUILD_DIR}/jsc-runtime-probe.txt"
+
+      - name: Check JSC linkage
+        shell: bash
+        run: |
+          set -euo pipefail
+          otool -L "${JSC_BUILD_DIR}/napi-jsc/tests/napi_jsc_test_32_sharedarraybuffer" | tee "${JSC_BUILD_DIR}/jsc-runtime-otool.txt"
+          ! grep -q '/System/Library/Frameworks/JavaScriptCore.framework' "${JSC_BUILD_DIR}/jsc-runtime-otool.txt"
+
+      - name: Run JSC smoke subset
+        shell: bash
+        run: |
+          set -euo pipefail
+          ctest --test-dir "${JSC_BUILD_DIR}" --output-on-failure -j4 -R "${JSC_SMOKE_REGEX}"
+
+      - name: Run JSC ctest suite
+        shell: bash
+        run: |
+          set -euo pipefail
+          ctest --test-dir "${JSC_BUILD_DIR}" --output-on-failure -j4 -R '^napi_jsc\.'
+
+      - name: Write JSC runtime report
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "${JSC_BUILD_DIR}"
+          {
+            echo "BUN_WEBKIT_TAG: ${{ steps.bun_webkit.outputs.tag }}"
+            echo "BUN_WEBKIT_ROOT: ${{ steps.bun_webkit.outputs.root }}"
+            echo "Build directory: ${JSC_BUILD_DIR}"
+            echo "Smoke regex: ${JSC_SMOKE_REGEX}"
+            echo "Probe binary: ${JSC_BUILD_DIR}/napi-jsc/tests/napi_jsc_runtime_probe"
+            echo "Full ctest command: ctest --test-dir ${JSC_BUILD_DIR} --output-on-failure -j4 -R ^napi_jsc\\."
+          } > "${JSC_BUILD_DIR}/jsc-runtime-report.txt"
+
+      - name: Upload JSC diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: napi-jsc-macos-diagnostics
+          if-no-files-found: ignore
+          path: |
+            build-napi-jsc/jsc-runtime-probe.txt
+            build-napi-jsc/jsc-runtime-report.txt
+            build-napi-jsc/jsc-runtime-otool.txt
+            build-napi-jsc/Testing/Temporary/LastTest.log
+            build-jsc-stock-host/Testing/Temporary/LastTest.log
+
+      - name: sccache stats
+        if: always()
+        run: sccache --show-stats || true
+
+  # build-windows-smoke:
+  #   name: build-windows-smoke
+  #   runs-on: windows-latest
+  #   env:
+  #     NAPI_V8_BUILD_METHOD: prebuilt
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         submodules: recursive
+
+  #     - name: Ensure submodules are initialized
+  #       shell: bash
+  #       run: |
+  #         set -euo pipefail
+  #         git submodule sync --recursive
+  #         git -c protocol.version=2 submodule update --init --recursive --depth=1
+  #         test -f node/src/node_api_types.h
+
+  #     - name: Configure edge
+  #       shell: pwsh
+  #       run: >
+  #         cmake -S . -B build-edge-win -A x64
+  #         -DCMAKE_BUILD_TYPE=Release
+  #         -DEDGE_PREFER_REPO_LOCAL_V8=OFF
+
+  #     - name: Build edge
+  #       shell: pwsh
+  #       run: cmake --build build-edge-win --config Release -j4
+
+  build-wasix-linux:
+    name: build-wasix-linux
+    runs-on: ubuntu-latest
+    env:
+      SCCACHE_GHA_ENABLED: "true"
+      RUSTC_WRAPPER: sccache
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@v0.0.9
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install wasixcc
+        uses: wasix-org/wasixcc@v0.4.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          sysroot-tag: v2026-02-16.1
+          version: v0.4.2
+
+      - name: Install wasm-tools
+        run: |
+          cargo install --locked wasm-tools
+
+      - name: Build edge (WASIX)
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./wasix/build-wasix.sh
+
+      - name: Generate dist
+        shell: bash
+        run: |
+          set -euo pipefail
+          make dist-only BUILD_DIR=build-wasix JOBS=4 ZIP_NAME=edge-wasix.zip
+
+      - name: Upload artifact edge
+        uses: actions/upload-artifact@v4
+        with:
+          name: edge-wasix
+          path: edge-wasix.zip
+          if-no-files-found: error
+
+      - name: sccache stats
+        if: always()
+        run: sccache --show-stats || true

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Settings</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:-apple-system,sans-serif; background:#f5f5f7; padding:16px; }
+h2 { font-size:20px; margin-bottom:16px; }
+.field { margin-bottom:16px; }
+.field label { display:block; font-size:13px; color:#8e8e93; margin-bottom:4px; }
+.field input, .field select, .field textarea { width:100%; padding:10px; border:1px solid #d1d1d6; border-radius:8px; font-size:15px; font-family:inherit; background:white; }
+.field textarea { height:80px; resize:vertical; }
+.btn { padding:12px 24px; border:none; border-radius:8px; background:#007AFF; color:white; font-size:16px; cursor:pointer; width:100%; margin-top:8px; }
+.btn:active { background:#0056b3; }
+.status { text-align:center; color:#8e8e93; font-size:13px; margin-top:12px; }
+</style>
+</head>
+<body>
+<h2 id="title">Extension Settings</h2>
+
+<div id="fields"></div>
+<button class="btn" onclick="saveAll()">Save</button>
+<div class="status" id="status"></div>
+
+<script>
+const API = 'http://127.0.0.1:18899';
+const params = new URLSearchParams(window.location.search);
+const commandKey = params.get('commandKey') || 'llm_ios|chat';
+
+async function loadSettings() {
+  document.getElementById('title').textContent = commandKey.split('|')[1] + ' Settings';
+  const r = await fetch(API + '/api/preferences', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ commandKey })
+  });
+  const config = await r.json();
+  const fields = document.getElementById('fields');
+  fields.innerHTML = '';
+
+  // Get preference definitions from extension info
+  const extR = await fetch(API + '/api/extensions');
+  const extData = await extR.json();
+  const extName = commandKey.split('|')[0];
+  const ext = (extData.extensions || []).find(e => e.name === extName);
+
+  // Try to get command preferences from the extension's package.json via test endpoint
+  // For now, just render all config keys as fields
+  const skipKeys = ['commandKey', 'title', 'icon', 'description'];
+  for (const [key, value] of Object.entries(config)) {
+    if (skipKeys.includes(key)) continue;
+    const div = document.createElement('div');
+    div.className = 'field';
+    const isPassword = key.includes('key') || key.includes('password') || key.includes('secret');
+    const isMultiline = key.includes('prompt');
+    div.innerHTML = `<label>${key}</label>` +
+      (isMultiline
+        ? `<textarea id="f_${key}">${value || ''}</textarea>`
+        : `<input type="${isPassword ? 'password' : 'text'}" id="f_${key}" value="${value || ''}" placeholder="${key}">`);
+    fields.appendChild(div);
+  }
+}
+
+async function saveAll() {
+  const fields = document.querySelectorAll('[id^="f_"]');
+  let saved = 0;
+  for (const f of fields) {
+    const name = f.id.replace('f_', '');
+    const value = f.value;
+    await fetch(API + '/api/preferences', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ commandKey, action: 'set', name, value })
+    });
+    saved++;
+  }
+  document.getElementById('status').textContent = `Saved ${saved} settings`;
+  setTimeout(() => document.getElementById('status').textContent = '', 2000);
+}
+
+loadSettings();
+</script>
+</body>
+</html>

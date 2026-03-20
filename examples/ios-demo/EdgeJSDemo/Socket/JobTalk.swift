@@ -1,0 +1,72 @@
+import Foundation
+
+struct JobTalk {
+
+    enum Keys {
+        static let type = "type"
+        static let method = "method"
+        static let jobDataIn = "jobDataIn"
+        static let payloads = "payloads"
+        static let callId = "callId"
+        static let sendId = "sendId"
+        static let stateId = "stateId"
+        static let requestId = "requestId"
+        static let needResult = "needResult"
+    }
+
+    enum Types {
+        static let request = "request"
+        static let response = "response"
+    }
+
+    enum Methods {
+        static let start = "start"
+        static let none = "none"
+        static let exit = "exit"
+        static let connected = "connected"
+        static let retry = "retry"
+        static let retryWithEdit = "retryWithEdit"
+        static let openConfig = "openConfig"
+        static let cancel = "cancel"
+        static let terminate = "terminate"
+        static let cancelAllTask = "cancelAllTask"
+        static let responseStream = "responseStream"
+        static let responseContext = "responseContext"
+        static let responseEnd = "responseEnd"
+        static let getLatestClipboard = "getLatestClipboard"
+        static let copy = "copy"
+        static let executeCommand = "executeCommand"
+        static let inlineExecuteCommand = "inlineExecuteCommand"
+        static let closeMainWindow = "closeMainWindow"
+        static let popToRoot = "popToRoot"
+        static let runInBackground = "runInBackground"
+        static let clearSmartBar = "clearSmartBar"
+        static let playAudio = "playAudio"
+        static let pauseResume = "pauseResume"
+        static let stopAudio = "stopAudio"
+        static let pauseAudio = "pauseAudio"
+        static let resumeAudio = "resumeAudio"
+        static let showToast = "showToast"
+        static let hideToast = "hideToast"
+        static let showHUD = "showHUD"
+        static let installExtension = "installExtension"
+        static let reloadExtension = "reloadExtension"
+        static let addCommand = "addCommand"
+        static let setDefaultCommand = "setDefaultCommand"
+        static let addMessage = "addMessage"
+        static let getMessages = "getMessages"
+        static let renderView = "renderView"
+        static let clickListener = "clickListener"
+        static let writeFile = "writeFile"
+        static let readFile = "readFile"
+        static let openURL = "openURL"
+        static let setKV = "setKV"
+        static let getKV = "getKV"
+        static let encrypt = "encrypt"
+        static let decrypt = "decrypt"
+        static let hapticFeedback = "hapticFeedback"
+        static let shareSheet = "shareSheet"
+        static let biometricAuth = "biometricAuth"
+        static let pushNotification = "pushNotification"
+    }
+}

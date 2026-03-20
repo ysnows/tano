@@ -1,0 +1,1 @@
+{"targets":[{"target_name":"addon","sources":["addon.cc","myobject.h","myobject.cc","test.js"],"includes":["../common.gypi"]}]}
