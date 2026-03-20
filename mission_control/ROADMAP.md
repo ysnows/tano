@@ -7,56 +7,51 @@ Integrate into existing iOS/Android projects or create standalone apps.
 ## Phases
 
 ### Phase 1: Core Runtime — COMPLETE
-- [x] TanoJSC — JavaScriptCore embedding on iOS (`packages/core/`)
-- [x] Bun API shims: `Bun.serve()`, `Bun.file()`, `Bun.write()`, `Bun.env`, `Bun.sleep()`
-- [x] `fetch` → URLSession, `console.*` → OSLog on JSC
-- [x] Runtime lifecycle, thread-safe `performOnJSCThread()`, timers, Web API polyfills
-- [x] HTTP server via NWListener, 40 tests
+- [x] TanoJSC runtime, Bun API shims, fetch, console, timers, Web APIs, HTTP server
+- [x] 40 tests in `packages/core/`
 
 ### Phase 2: Bridge Protocol — COMPLETE
-- [x] UDS bridge (FrameCodec, UDSServer, UDSClient) in `packages/bridge/`
-- [x] TanoBridgeMessage protocol, TanoPlugin protocol, PluginRouter, BridgeManager
-- [x] 29 tests
+- [x] UDS bridge, TanoBridgeMessage, TanoPlugin protocol, PluginRouter, BridgeManager
+- [x] 29 tests in `packages/bridge/`
 
 ### Phase 3: WebView Layer — COMPLETE
-- [x] TanoWebView (SwiftUI WKWebView) in `packages/webview/`
-- [x] Bridge JS (`window.Tano.invoke/on/send/emit`), WKScriptMessageHandler → PluginRouter
-- [x] Dev mode (localhost) and production (bundle) loading, 41 tests
+- [x] TanoWebView, bridge JS (invoke/on/send/emit), WKScriptMessageHandler
+- [x] 41 tests in `packages/webview/`
 
-### Phase 4: Plugin System (Current)
-- [x] `TanoPlugin` Swift protocol (in bridge package)
-- [x] Plugin registration and routing via PluginRouter
+### Phase 4: Plugin System — COMPLETE
 - [x] @tano/plugin-sqlite — open, query, run, close (7 tests)
 - [x] @tano/plugin-clipboard — copy, read (4 tests)
-- [ ] @tano/plugin-biometrics — Face ID / Touch ID
-- [x] @tano/plugin-haptics — impact/notification/selection (6 tests)
-- [x] @tano/plugin-fs — read/write/exists/delete/list/mkdir (7 tests)
-- [x] @tano/plugin-crypto — hash/hmac/encrypt/decrypt/random via CryptoKit (8 tests)
-- [x] @tano/plugin-keychain — set/get/delete via UserDefaults (5 tests)
-- [ ] @tano/plugin-share — share sheet
-- [ ] @tano/plugin-notifications — local notifications
-- [ ] @tano/plugin-http — native HTTP client
-- [ ] @tano/plugin-camera — camera & photo picker
-- [ ] Verify: Full CRUD app with SQLite + biometrics
+- [x] @tano/plugin-haptics — impact, notification, selection (6 tests)
+- [x] @tano/plugin-keychain — set, get, delete (5 tests)
+- [x] @tano/plugin-fs — read, write, exists, delete, list, mkdir (7 tests)
+- [x] @tano/plugin-crypto — hash, hmac, encrypt/decrypt, random (8 tests)
+- [x] @tano/plugin-biometrics — authenticate via LAContext (3 tests)
+- [x] @tano/plugin-share — share sheet (4 tests)
+- [x] @tano/plugin-notifications — requestPermission, schedule, cancel (5 tests)
+- [x] @tano/plugin-http — native HTTP client (4 tests)
+- [x] @tano/plugin-camera — takePicture, pickImage (4 tests)
+- [x] All 11 plugins: 57 tests total
 
-### Phase 5: CLI Tooling
-- [ ] `tano create` — project scaffolding with templates
+### Phase 5: CLI Tooling — IN PROGRESS
+- [x] `tano create <name>` — project scaffolding with default template
+- [x] `tano doctor` — environment check (Bun, Xcode, simulators, Android SDK)
+- [x] CLI framework with help, version, command routing
+- [x] Default project template (server.js + web UI + tano.config.ts)
 - [ ] `tano dev` — dev server + simulator management + hot reload
 - [ ] `tano build ios` / `tano build android`
 - [ ] `tano run ios` / `tano run android`
 - [ ] `tano plugin add/create`
-- [ ] `tano doctor` — environment check
 
 ### Phase 6: Android Sync
 - [ ] Embed JSC on Android via JNI
-- [ ] Port TanoJSC runtime, bridge, WebView, plugins to Kotlin
+- [ ] Port all packages to Kotlin
 
 ### Phase 7: Existing App Integration
 - [ ] Swift Package / CocoaPod + Gradle dependency
-- [ ] Documentation for adding Tano to existing apps
+- [ ] Documentation
 
 ### Phase 8: Ecosystem
-- [ ] Plugin marketplace, community templates, example apps
+- [ ] Plugin marketplace, templates, example apps
 
 ## Test Summary
 | Package | Tests |
@@ -70,8 +65,9 @@ Integrate into existing iOS/Android projects or create standalone apps.
 | plugin-keychain | 5 |
 | plugin-fs | 7 |
 | plugin-crypto | 8 |
-| **Total** | **147** |
-
-## Development Strategy
-- **iOS-first**: Build and test on iOS simulator, then sync to Android
-- **Bun reference**: `refs/bun/` | **Electrobun reference**: `refs/electrobun/`
+| plugin-biometrics | 3 |
+| plugin-share | 4 |
+| plugin-notifications | 5 |
+| plugin-http | 4 |
+| plugin-camera | 4 |
+| **Total** | **167** |
