@@ -39,12 +39,12 @@ public final class NotificationsPlugin: TanoPlugin {
     // MARK: - requestPermission
 
     private func requestPermission() async throws -> [String: Any] {
-        #if os(iOS) || (os(macOS) && canImport(UserNotifications))
+        #if os(iOS)
         let center = UNUserNotificationCenter.current()
         let granted = try await center.requestAuthorization(options: [.alert, .sound, .badge])
         return ["granted": granted]
         #else
-        // Stub
+        // Stub for macOS tests
         return ["granted": true]
         #endif
     }
@@ -68,7 +68,7 @@ public final class NotificationsPlugin: TanoPlugin {
 
         let identifier = UUID().uuidString
 
-        #if os(iOS) || (os(macOS) && canImport(UserNotifications))
+        #if os(iOS)
         let content = UNMutableNotificationContent()
         content.title = title
         content.body = body
@@ -98,7 +98,7 @@ public final class NotificationsPlugin: TanoPlugin {
             throw NotificationsPluginError.missingParameter("id")
         }
 
-        #if os(iOS) || (os(macOS) && canImport(UserNotifications))
+        #if os(iOS)
         UNUserNotificationCenter.current()
             .removePendingNotificationRequests(withIdentifiers: [identifier])
         #endif
