@@ -261,14 +261,14 @@ Generates:
 
 | Plugin | Status | Description |
 |--------|--------|------------|
-| `@tano/plugin-sqlite` | Phase 4 | SQLite database |
-| `@tano/plugin-clipboard` | Phase 4 | Copy/paste |
-| `@tano/plugin-biometrics` | Phase 4 | Face ID / fingerprint |
-| `@tano/plugin-haptics` | Phase 4 | Haptic feedback |
-| `@tano/plugin-camera` | Phase 4 | Camera & photo picker |
-| `@tano/plugin-fs` | Phase 4 | File system access |
-| `@tano/plugin-crypto` | Phase 4 | Encryption & hashing |
-| `@tano/plugin-keychain` | Phase 4 | Secure storage (Keychain / EncryptedSharedPrefs) |
-| `@tano/plugin-share` | Phase 4 | Share sheet |
-| `@tano/plugin-notifications` | Phase 4 | Local notifications |
-| `@tano/plugin-http` | Phase 4 | Native HTTP client |
+| `@tano/plugin-sqlite` | **Done** | open, query, run, close (7 tests) |
+| `@tano/plugin-clipboard` | **Done** | copy, read (4 tests) |
+| `@tano/plugin-haptics` | **Done** | impact, notification, selection (6 tests) |
+| `@tano/plugin-keychain` | **Done** | set, get, delete (5 tests) |
+| `@tano/plugin-fs` | **Done** | read, write, exists, delete, list, mkdir (7 tests) |
+| `@tano/plugin-biometrics` | Planned | Face ID / fingerprint |
+| `@tano/plugin-crypto` | Planned | Encryption & hashing |
+| `@tano/plugin-camera` | Planned | Camera & photo picker |
+| `@tano/plugin-share` | Planned | Share sheet |
+| `@tano/plugin-notifications` | Planned | Local notifications |
+| `@tano/plugin-http` | Planned | Native HTTP client |

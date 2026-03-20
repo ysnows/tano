@@ -10,51 +10,33 @@ Integrate into existing iOS/Android projects or create standalone apps.
 - [x] TanoJSC — JavaScriptCore embedding on iOS (`packages/core/`)
 - [x] Bun API shims: `Bun.serve()`, `Bun.file()`, `Bun.write()`, `Bun.env`, `Bun.sleep()`
 - [x] `fetch` → URLSession, `console.*` → OSLog on JSC
-- [x] Runtime lifecycle (init, run, shutdown) managed from Swift via `TanoRuntime`
-- [x] Thread-safe cross-thread access via `performOnJSCThread()` (CFRunLoopPerformBlock)
-- [x] `setTimeout`/`setInterval` with thread-safe callbacks
-- [x] `Response`/`Request`/`Headers`/`URL` Web API polyfills
-- [x] HTTP server via NWListener (Network.framework)
-- [x] 40 tests passing, including full Bun.serve() integration test
-- [x] Verify: Bun.serve() HTTP server running in TanoJSC with real HTTP requests
+- [x] Runtime lifecycle, thread-safe `performOnJSCThread()`, timers, Web API polyfills
+- [x] HTTP server via NWListener, 40 tests
 
-### Phase 2: Bridge Protocol (Current)
-- [x] Port UDS bridge (FrameCodec, UDSServer, UDSClient) to `packages/bridge/`
-- [x] TanoBridgeMessage protocol (replaces JobTalk, cleaned of Enconvo naming)
-- [x] TanoPlugin protocol + PluginRouter for message routing
-- [x] BridgeManager coordinating UDS + plugins
-- [x] HTTP localhost data channel (works via Bun.serve from Phase 1)
-- [x] 29 tests passing
-- [ ] WKScriptMessageHandler control channel (→ Phase 3)
-- [ ] `window.Tano.invoke()` JS API (→ Phase 3)
-- [ ] Typed RPC system (→ Phase 3)
-- [ ] Verify: WebView <-> TanoJSC bidirectional communication (→ Phase 3)
+### Phase 2: Bridge Protocol — COMPLETE
+- [x] UDS bridge (FrameCodec, UDSServer, UDSClient) in `packages/bridge/`
+- [x] TanoBridgeMessage protocol, TanoPlugin protocol, PluginRouter, BridgeManager
+- [x] 29 tests
 
 ### Phase 3: WebView Layer — COMPLETE
-- [x] TanoWebView (SwiftUI WKWebView wrapper) in `packages/webview/`
-- [x] Bridge JS injection (`window.Tano.invoke/on/send/emit`)
-- [x] WKScriptMessageHandler → PluginRouter integration
-- [x] Dev mode (localhost) and production (bundle) URL loading
-- [x] 41 tests passing
-- [ ] HMR client for dev mode (→ Phase 5 CLI)
-- [ ] Framework proxy (Vite, Next.js static export) (→ Phase 5 CLI)
+- [x] TanoWebView (SwiftUI WKWebView) in `packages/webview/`
+- [x] Bridge JS (`window.Tano.invoke/on/send/emit`), WKScriptMessageHandler → PluginRouter
+- [x] Dev mode (localhost) and production (bundle) loading, 41 tests
 
-### Phase 4: Plugin System
-- [ ] `TanoPlugin` Swift protocol
-- [ ] Plugin registration and routing via UDS bridge
-- [ ] Extract existing ProducerTasks into individual plugins:
-  - [ ] @tano/plugin-sqlite
-  - [ ] @tano/plugin-clipboard
-  - [ ] @tano/plugin-biometrics
-  - [ ] @tano/plugin-haptics
-  - [ ] @tano/plugin-fs
-  - [ ] @tano/plugin-crypto
-  - [ ] @tano/plugin-keychain
-  - [ ] @tano/plugin-share
-  - [ ] @tano/plugin-notifications
-  - [ ] @tano/plugin-http
-  - [ ] @tano/plugin-camera
-- [ ] JS API packages for each plugin
+### Phase 4: Plugin System (Current)
+- [x] `TanoPlugin` Swift protocol (in bridge package)
+- [x] Plugin registration and routing via PluginRouter
+- [x] @tano/plugin-sqlite — open, query, run, close (7 tests)
+- [x] @tano/plugin-clipboard — copy, read (4 tests)
+- [ ] @tano/plugin-biometrics — Face ID / Touch ID
+- [x] @tano/plugin-haptics — impact/notification/selection (6 tests)
+- [x] @tano/plugin-fs — read/write/exists/delete/list/mkdir (7 tests)
+- [ ] @tano/plugin-crypto — encryption & hashing
+- [x] @tano/plugin-keychain — set/get/delete via UserDefaults (5 tests)
+- [ ] @tano/plugin-share — share sheet
+- [ ] @tano/plugin-notifications — local notifications
+- [ ] @tano/plugin-http — native HTTP client
+- [ ] @tano/plugin-camera — camera & photo picker
 - [ ] Verify: Full CRUD app with SQLite + biometrics
 
 ### Phase 5: CLI Tooling
@@ -64,37 +46,31 @@ Integrate into existing iOS/Android projects or create standalone apps.
 - [ ] `tano run ios` / `tano run android`
 - [ ] `tano plugin add/create`
 - [ ] `tano doctor` — environment check
-- [ ] Verify: `tano create my-app && cd my-app && tano dev` works end-to-end
 
 ### Phase 6: Android Sync
 - [ ] Embed JSC on Android via JNI
-- [ ] Port TanoJSC runtime to Kotlin
-- [ ] Port bridge (UDS + HTTP) to Kotlin
-- [ ] Port TanoWebView to Kotlin + Android WebView
-- [ ] Port all plugins to Kotlin
-- [ ] Verify: Same app runs on both iOS and Android
+- [ ] Port TanoJSC runtime, bridge, WebView, plugins to Kotlin
 
 ### Phase 7: Existing App Integration
-- [ ] `TanoRuntime` as a Swift Package / CocoaPod
-- [ ] `dev.tano:core` as a Gradle dependency
-- [ ] Documentation: "Add Tano to existing iOS project"
-- [ ] Documentation: "Add Tano to existing Android project"
-- [ ] Minimal integration example (3 lines of code)
+- [ ] Swift Package / CocoaPod + Gradle dependency
+- [ ] Documentation for adding Tano to existing apps
 
 ### Phase 8: Ecosystem
-- [ ] Plugin marketplace / npm discovery
-- [ ] Community plugin template
-- [ ] Starter templates: React, Vue, Next.js, Svelte, plain HTML
-- [ ] Example apps: todo, chat/LLM, notes, e-commerce
+- [ ] Plugin marketplace, community templates, example apps
+
+## Test Summary
+| Package | Tests |
+|---------|-------|
+| core | 40 |
+| bridge | 29 |
+| webview | 41 |
+| plugin-sqlite | 7 |
+| plugin-clipboard | 4 |
+| plugin-haptics | 6 |
+| plugin-keychain | 5 |
+| plugin-fs | 7 |
+| **Total** | **139** |
 
 ## Development Strategy
-- **iOS-first**: All features built and tested on iOS simulator first
-- **Android-sync**: Android implementation follows once iOS is stable
-- **Bun reference**: `refs/bun/` for API compatibility reference
-- **Electrobun reference**: `refs/electrobun/` for architecture patterns
-
-## Self-Evolution
-This project uses `mission_control/` for continuous improvement:
-- `tasks/` — Active development tasks
-- `logs/` — Progress logs and decisions
-- `ROADMAP.md` — This file, updated as project progresses
+- **iOS-first**: Build and test on iOS simulator, then sync to Android
+- **Bun reference**: `refs/bun/` | **Electrobun reference**: `refs/electrobun/`
