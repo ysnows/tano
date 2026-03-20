@@ -53,9 +53,14 @@ Integrate into existing iOS/Android projects or create standalone apps.
 - [ ] `tano build android` / `tano run android` in CLI
 - [ ] End-to-end test on Android emulator
 
-### Phase 7: Existing App Integration
-- [ ] Swift Package / CocoaPod + Gradle dependency
-- [ ] Documentation
+### Phase 7: Existing App Integration — COMPLETE
+- [x] Root Package.swift exposing all 14 libraries + all-in-one `Tano` convenience
+- [x] `swift build` compiles successfully from root (66 compilation units)
+- [x] Android build.gradle.kts + AndroidManifest.xml
+- [x] iOS integration guide (`docs/guides/ios-integration.md`)
+- [x] Android integration guide (`docs/guides/android-integration.md`)
+- [ ] Publish to Maven Central (Android)
+- [ ] Tag v0.1.0 release
 
 ### Phase 8: Ecosystem
 - [ ] Plugin marketplace, templates, example apps
