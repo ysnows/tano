@@ -41,3 +41,7 @@ npm-debug.log*
 # Temporary
 .tmp/
 .cache/
+*.d
+*.swiftdeps
+*.swiftdeps~
+.claude/
