@@ -1,0 +1,8 @@
+{
+    "name": "@tano/plugin-sqlite",
+    "version": "0.1.0",
+    "description": "Tano SQLite plugin — database operations on mobile",
+    "main": "index.js",
+    "types": "index.d.ts",
+    "license": "MIT"
+}

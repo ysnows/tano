@@ -1,0 +1,8 @@
+{
+    "name": "@tano/plugin-clipboard",
+    "version": "0.1.0",
+    "description": "Tano clipboard plugin — read and write system clipboard",
+    "main": "index.js",
+    "types": "index.d.ts",
+    "license": "MIT"
+}
