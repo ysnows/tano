@@ -8,6 +8,7 @@
 
 **Integrate into existing iOS/Android projects or start fresh.**
 
+[![Version](https://img.shields.io/badge/version-0.1.0-brightgreen)](/)
 [![iOS](https://img.shields.io/badge/iOS-15%2B-blue?logo=apple)](/)
 [![Android](https://img.shields.io/badge/Android-API%2024%2B-green?logo=android)](/)
 [![Bun](https://img.shields.io/badge/Bun-compatible-f472b6?logo=bun)](/)
