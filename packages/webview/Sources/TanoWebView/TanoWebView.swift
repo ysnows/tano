@@ -69,6 +69,16 @@ public struct TanoWebView: UIViewRepresentable {
         )
         contentController.addUserScript(bridgeScript)
 
+        // Inject dev overlay script after bridge JS when dev mode is enabled
+        if TanoDevOverlay.enabled {
+            let devScript = WKUserScript(
+                source: "window.__TANO_DEV__ = true;\n" + TanoDevOverlay.script,
+                injectionTime: .atDocumentStart,
+                forMainFrameOnly: true
+            )
+            contentController.addUserScript(devScript)
+        }
+
         // Register the "tano" message handler
         let handler = context.coordinator.messageHandler
         contentController.add(handler, name: "tano")
