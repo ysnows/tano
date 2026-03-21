@@ -1,0 +1,23 @@
+{
+    "name": "{{APP_NAME_LOWER}}",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "dev:server": "bun run src/server/index.ts",
+        "dev:web": "cd src/web && npx next dev",
+        "build:server": "bun build src/server/index.ts --outdir dist/server --minify",
+        "build:web": "cd src/web && npx next build",
+        "export:web": "cd src/web && npx next export -o ../../dist/web"
+    },
+    "dependencies": {
+        "@tano/bridge": "^0.1.0"
+    },
+    "devDependencies": {
+        "next": "^14.0.0",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "typescript": "^5.0.0",
+        "@types/react": "^18.2.0",
+        "@types/react-dom": "^18.2.0"
+    }
+}

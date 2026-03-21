@@ -7,7 +7,7 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const AVAILABLE_TEMPLATES = ["default", "react", "vue"];
+const AVAILABLE_TEMPLATES = ["default", "react", "vue", "nextjs"];
 
 export default async function create(args: string[]): Promise<void> {
     // Parse --template flag
