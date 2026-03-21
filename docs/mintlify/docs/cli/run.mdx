@@ -1,0 +1,31 @@
+---
+title: 'tano run'
+description: 'Build and run the app on a device or simulator'
+---
+
+## Usage
+
+```bash
+tano run <platform> [options]
+```
+
+## Platforms
+
+- `ios` — Run on iOS Simulator or device
+- `android` — Run on Android emulator or device
+
+## Options
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--device` | Run on a physical device | `false` |
+| `--simulator <name>` | Specify simulator name | Default simulator |
+| `--release` | Run in release mode | `false` |
+
+## Examples
+
+```bash
+tano run ios
+tano run ios --device
+tano run android --simulator "Pixel 7"
+```

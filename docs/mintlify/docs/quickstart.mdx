@@ -1,0 +1,70 @@
+---
+title: 'Quick Start'
+description: 'Create your first Tano app in 60 seconds'
+---
+
+## Prerequisites
+
+- [Bun](https://bun.sh) (v1.0+)
+- Xcode (for iOS) or Android Studio (for Android)
+- Run `tano doctor` to verify your environment
+
+## Create a Project
+
+```bash
+bun add -g @tano/cli
+tano create my-app
+cd my-app
+```
+
+## Start Development
+
+```bash
+tano dev
+```
+
+This starts the Bun server and opens the iOS Simulator. Edit files and see changes instantly via HMR.
+
+## Project Structure
+
+```
+my-app/
+├── src/
+│   ├── server/
+│   │   └── index.ts     # Bun server (runs on device)
+│   └── web/
+│       └── index.html   # Web UI (rendered in WebView)
+├── tano.config.ts        # Project configuration
+└── package.json
+```
+
+## Write Your Server
+
+```typescript
+// src/server/index.ts
+export default Bun.serve({
+    port: 18899,
+    fetch(req) {
+        const url = new URL(req.url);
+        if (url.pathname === '/api/hello') {
+            return Response.json({ message: 'Hello from Tano!' });
+        }
+        return new Response('Not Found', { status: 404 });
+    }
+});
+```
+
+## Use Plugins
+
+```javascript
+// In your web app
+const result = await window.Tano.invoke('clipboard', 'copy', { text: 'Hello!' });
+const data = await window.Tano.invoke('sqlite', 'query', { handle: db, sql: 'SELECT * FROM users' });
+```
+
+## Build for Production
+
+```bash
+tano build ios
+tano run ios
+```

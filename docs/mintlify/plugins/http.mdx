@@ -1,0 +1,30 @@
+---
+title: 'HTTP'
+description: 'Native HTTP client for external API calls'
+---
+
+## Usage
+
+```javascript
+// GET request
+const res = await window.Tano.invoke('http', 'request', {
+    url: 'https://api.example.com/data',
+    method: 'GET',
+    headers: { 'Authorization': 'Bearer token' }
+});
+// res: { status: 200, headers: {...}, body: '...' }
+
+// POST request
+const post = await window.Tano.invoke('http', 'request', {
+    url: 'https://api.example.com/items',
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: 'New item' })
+});
+```
+
+## Methods
+
+| Method | Params | Returns |
+|--------|--------|---------|
+| `request` | `{ url, method, headers?, body? }` | `{ status, headers, body }` |

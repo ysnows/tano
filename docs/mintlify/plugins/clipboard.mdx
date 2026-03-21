@@ -1,0 +1,31 @@
+---
+title: 'Clipboard'
+description: 'Read and write the system clipboard'
+---
+
+## Usage
+
+```javascript
+// Copy text to clipboard
+await window.Tano.invoke('clipboard', 'copy', { text: 'Hello, world!' });
+
+// Read clipboard contents
+const result = await window.Tano.invoke('clipboard', 'paste', {});
+// result: { text: 'Hello, world!' }
+```
+
+## With TypeScript
+
+```typescript
+import { copy, paste } from '@tano/plugin-clipboard'
+
+await copy('Hello, world!')
+const text = await paste()
+```
+
+## Methods
+
+| Method | Params | Returns |
+|--------|--------|---------|
+| `copy` | `{ text: string }` | `void` |
+| `paste` | `{}` | `{ text: string }` |

@@ -1,0 +1,33 @@
+---
+title: 'tano dev'
+description: 'Start the development server with HMR'
+---
+
+## Usage
+
+```bash
+tano dev [options]
+```
+
+## Options
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--port <number>` | Server port | `18899` |
+| `--host <address>` | Host address | `localhost` |
+| `--open` | Open in Simulator automatically | `true` |
+| `--no-hmr` | Disable hot module replacement | `false` |
+
+## What it does
+
+1. Starts a Bun dev server on the specified port
+2. Watches for file changes and triggers HMR via WebSocket
+3. Opens the iOS Simulator with the app pointing to localhost
+
+## Examples
+
+```bash
+tano dev
+tano dev --port 3000
+tano dev --no-hmr
+```

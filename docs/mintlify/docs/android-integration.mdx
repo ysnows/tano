@@ -1,0 +1,42 @@
+---
+title: 'Android Integration'
+description: 'Add Tano to an existing Android project'
+---
+
+## Gradle Dependency
+
+```kotlin
+// build.gradle.kts
+dependencies {
+    implementation("dev.tano:core:0.1.0")
+    implementation("dev.tano:webview:0.1.0")
+    implementation("dev.tano:plugins:0.1.0")
+}
+```
+
+## Usage
+
+```kotlin
+// In your Activity
+val tano = TanoRuntime(this)
+tano.loadPlugins(listOf(
+    SQLitePlugin(),
+    ClipboardPlugin(),
+    HapticsPlugin()
+))
+tano.start()
+```
+
+## Add the WebView
+
+```kotlin
+// In your layout or Compose
+TanoWebView(
+    context = this,
+    url = "http://localhost:18899"
+)
+```
+
+<Note>
+Android support is in early development. iOS is the primary target for v0.1.
+</Note>

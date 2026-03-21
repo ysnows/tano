@@ -1,0 +1,58 @@
+---
+title: 'Introduction'
+description: 'Tano — the mobile runtime for web apps'
+---
+
+# What is Tano?
+
+Tano is a cross-platform mobile framework that runs a **Bun-compatible JavaScript/TypeScript server on the device**, renders UI in a **native WebView**, and bridges to **native APIs** via a plugin system.
+
+Think of it as bringing the power of Bun to mobile. Same mental model as web development — your frontend talks to your backend via `fetch()`. Except both run on the same device.
+
+## Why Tano?
+
+<CardGroup cols={2}>
+  <Card title="On-device server" icon="server">
+    Full `Bun.serve()` running locally. Your app has a real backend — SQLite, file system, crypto — all on device.
+  </Card>
+  <Card title="Any web framework" icon="react">
+    React, Vue, Next.js, Svelte, or plain HTML. If it builds to static files, it works.
+  </Card>
+  <Card title="11 native plugins" icon="puzzle-piece">
+    SQLite, clipboard, haptics, biometrics, camera, crypto, file system, keychain, share, notifications, HTTP.
+  </Card>
+  <Card title="Drop into existing apps" icon="mobile">
+    Add Tano to your existing Swift or Kotlin project with 3 lines of code.
+  </Card>
+</CardGroup>
+
+## How it works
+
+```
+Your Web App (React, Vue, Next.js, HTML)
+       │ fetch()
+       ▼
+Bun-compatible Server (runs ON the device)
+       │ UDS bridge
+       ▼
+Native APIs (camera, biometrics, SQLite, fs, crypto...)
+```
+
+## Quick Start
+
+<CodeGroup>
+
+```bash npm
+bun add -g @tano/cli
+tano create my-app
+cd my-app
+tano dev
+```
+
+```bash with template
+tano create my-app --template react
+tano create my-app --template vue
+tano create my-app --template nextjs
+```
+
+</CodeGroup>

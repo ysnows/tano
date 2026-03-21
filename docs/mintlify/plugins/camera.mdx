@@ -1,0 +1,25 @@
+---
+title: 'Camera'
+description: 'Capture photos using the device camera or photo library'
+---
+
+## Usage
+
+```javascript
+// Take a photo
+const photo = await window.Tano.invoke('camera', 'capture', {
+    source: 'camera'  // 'camera' | 'photoLibrary'
+});
+// photo: { base64: '...', width: 1920, height: 1080 }
+
+// Pick from photo library
+const picked = await window.Tano.invoke('camera', 'capture', {
+    source: 'photoLibrary'
+});
+```
+
+## Methods
+
+| Method | Params | Returns |
+|--------|--------|---------|
+| `capture` | `{ source: string }` | `{ base64, width, height }` |

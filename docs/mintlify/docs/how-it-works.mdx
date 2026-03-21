@@ -1,0 +1,30 @@
+---
+title: 'How It Works'
+description: 'Architecture overview of Tano'
+---
+
+## Two Modes
+
+### Development Mode
+
+Your machine runs stock Bun as the dev server. The iOS Simulator WebView connects to localhost. File changes trigger HMR.
+
+### Production Mode
+
+`Bun.build()` bundles your server code. TanoJSC (our lightweight JSC runtime) executes it on device. WebView loads static files from the app bundle.
+
+## The Stack
+
+| Layer | Package | Purpose |
+|-------|---------|---------|
+| Runtime | `packages/core` | TanoJSC: JSC engine + Bun API shims |
+| Bridge | `packages/bridge` | UDS protocol, plugin routing |
+| WebView | `packages/webview` | WKWebView + `window.Tano` bridge |
+| Plugins | `packages/plugins/*` | 11 native capabilities |
+| CLI | `packages/cli` | create, dev, build, run, doctor |
+
+## Communication Channels
+
+1. **Control** — `window.Tano.invoke()` via WKScriptMessageHandler (low latency)
+2. **Data** — `fetch()` to localhost Bun.serve() (large payloads, SSE)
+3. **Native** — UDS with JobTalk protocol (plugin calls)

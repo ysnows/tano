@@ -1,0 +1,51 @@
+---
+title: 'Plugin System'
+description: 'How native plugins work in Tano'
+---
+
+## Plugin Protocol
+
+Every plugin implements the `TanoPlugin` protocol:
+
+```swift
+public protocol TanoPlugin {
+    var name: String { get }
+    func handle(method: String, params: [String: Any],
+                callback: @escaping (Result<Any, Error>) -> Void)
+}
+```
+
+## Creating a Custom Plugin
+
+```swift
+class MyPlugin: TanoPlugin {
+    let name = "my-plugin"
+
+    func handle(method: String, params: [String: Any],
+                callback: @escaping (Result<Any, Error>) -> Void) {
+        switch method {
+        case "hello":
+            callback(.success(["message": "Hello from native!"]))
+        default:
+            callback(.failure(TanoError.unknownMethod(method)))
+        }
+    }
+}
+```
+
+Register it:
+
+```swift
+pluginRouter.register(plugin: MyPlugin())
+```
+
+Call it from JS:
+
+```javascript
+const result = await window.Tano.invoke('my-plugin', 'hello', {});
+// { message: 'Hello from native!' }
+```
+
+## Official Plugins
+
+Tano ships with 11 plugins: SQLite, Clipboard, Crypto, File System, Haptics, Keychain, Biometrics, Share, Notifications, HTTP, and Camera.

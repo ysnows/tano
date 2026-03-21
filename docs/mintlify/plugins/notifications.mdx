@@ -1,0 +1,31 @@
+---
+title: 'Notifications'
+description: 'Local push notifications'
+---
+
+## Usage
+
+```javascript
+// Request permission
+const perm = await window.Tano.invoke('notifications', 'requestPermission', {});
+// perm: { granted: true }
+
+// Schedule a notification
+await window.Tano.invoke('notifications', 'schedule', {
+    title: 'Reminder',
+    body: 'Time to check your tasks',
+    delay: 60  // seconds from now
+});
+
+// Cancel all pending notifications
+await window.Tano.invoke('notifications', 'cancelAll', {});
+```
+
+## Methods
+
+| Method | Params | Returns |
+|--------|--------|---------|
+| `requestPermission` | `{}` | `{ granted: boolean }` |
+| `schedule` | `{ title, body, delay? }` | `{ id: string }` |
+| `cancel` | `{ id: string }` | `void` |
+| `cancelAll` | `{}` | `void` |

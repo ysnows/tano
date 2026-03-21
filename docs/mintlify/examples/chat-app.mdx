@@ -1,0 +1,34 @@
+---
+title: 'Chat App'
+description: 'Real-time chat with Server-Sent Events'
+---
+
+## What it does
+
+A chat application that uses Server-Sent Events (SSE) for real-time message streaming. Demonstrates how to use `fetch()` for streaming data from the on-device Bun server.
+
+## Features
+
+- Real-time message updates via SSE
+- Message history stored in SQLite
+- Vue.js frontend
+- Typing indicators
+
+## Run it
+
+```bash
+cd examples/chat-app
+bun install
+tano dev
+```
+
+## Key Code
+
+**Server** — Bun.serve() with an SSE endpoint at `/api/stream` that pushes new messages to connected clients.
+
+**Client** — Vue.js app that uses `EventSource` to receive messages and `fetch()` to send them.
+
+## Plugins Used
+
+- `sqlite` — Message persistence
+- `haptics` — Feedback on send

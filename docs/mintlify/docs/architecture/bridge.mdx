@@ -1,0 +1,44 @@
+---
+title: 'Bridge'
+description: 'Communication between web, JS runtime, and native'
+---
+
+## Bridge Architecture
+
+The bridge connects three layers:
+
+```
+WebView (JS) <--WKScriptMessageHandler--> Bridge <--UDS--> Runtime/Plugins
+```
+
+## Protocol
+
+All messages use JSON over Unix Domain Sockets (UDS):
+
+```json
+{
+    "id": "uuid",
+    "plugin": "sqlite",
+    "method": "query",
+    "params": { "handle": "db1", "sql": "SELECT 1" }
+}
+```
+
+Responses:
+
+```json
+{
+    "id": "uuid",
+    "result": [{ "1": 1 }]
+}
+```
+
+## Plugin Router
+
+The `PluginRouter` dispatches incoming messages to the correct plugin based on the `plugin` field. Plugins register themselves at startup:
+
+```swift
+let router = PluginRouter()
+router.register(plugin: SQLitePlugin())
+router.register(plugin: ClipboardPlugin())
+```

@@ -1,0 +1,27 @@
+---
+title: 'Haptics'
+description: 'Trigger haptic feedback on the device'
+---
+
+## Usage
+
+```javascript
+// Impact feedback
+await window.Tano.invoke('haptics', 'impact', { style: 'medium' });
+// style: 'light' | 'medium' | 'heavy' | 'soft' | 'rigid'
+
+// Notification feedback
+await window.Tano.invoke('haptics', 'notification', { type: 'success' });
+// type: 'success' | 'warning' | 'error'
+
+// Selection feedback
+await window.Tano.invoke('haptics', 'selection', {});
+```
+
+## Methods
+
+| Method | Params | Returns |
+|--------|--------|---------|
+| `impact` | `{ style: string }` | `void` |
+| `notification` | `{ type: string }` | `void` |
+| `selection` | `{}` | `void` |

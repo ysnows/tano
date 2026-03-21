@@ -1,0 +1,38 @@
+---
+title: 'Notes App'
+description: 'Encrypted notes with biometric authentication'
+---
+
+## What it does
+
+A secure notes app that encrypts content with AES-GCM and locks behind Face ID / Touch ID. Demonstrates combining multiple native plugins in a single app.
+
+## Features
+
+- Create, edit, and delete notes
+- AES-GCM encryption via the crypto plugin
+- Biometric unlock (Face ID / Touch ID)
+- Copy note content to clipboard
+- React frontend
+
+## Run it
+
+```bash
+cd examples/notes-app
+bun install
+tano dev
+```
+
+## Key Code
+
+**Server** — REST API for notes CRUD. Encryption keys stored in Keychain.
+
+**Client** — React app that calls biometrics for unlock, then fetches decrypted notes.
+
+## Plugins Used
+
+- `sqlite` — Note storage
+- `crypto` — AES-GCM encryption/decryption
+- `biometrics` — Face ID / Touch ID authentication
+- `keychain` — Encryption key storage
+- `clipboard` — Copy note content

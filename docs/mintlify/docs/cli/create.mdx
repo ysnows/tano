@@ -1,0 +1,26 @@
+---
+title: 'tano create'
+description: 'Scaffold a new Tano project'
+---
+
+## Usage
+
+```bash
+tano create <project-name> [options]
+```
+
+## Options
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--template <name>` | Project template (`react`, `vue`, `nextjs`, `vanilla`) | `vanilla` |
+| `--no-install` | Skip dependency installation | `false` |
+| `--dir <path>` | Output directory | `./<project-name>` |
+
+## Examples
+
+```bash
+tano create my-app
+tano create my-app --template react
+tano create my-app --template vue --no-install
+```

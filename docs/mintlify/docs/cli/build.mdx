@@ -1,0 +1,37 @@
+---
+title: 'tano build'
+description: 'Build the app for production'
+---
+
+## Usage
+
+```bash
+tano build <platform> [options]
+```
+
+## Platforms
+
+- `ios` — Build for iOS (requires Xcode)
+- `android` — Build for Android (requires Android Studio)
+
+## Options
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--release` | Build in release mode | `false` |
+| `--output <path>` | Output directory | `./build` |
+| `--config <path>` | Config file path | `./tano.config.ts` |
+
+## What it does
+
+1. Bundles server code with `Bun.build()`
+2. Copies web assets to the app bundle
+3. Compiles the native project (Xcode / Gradle)
+
+## Examples
+
+```bash
+tano build ios
+tano build ios --release
+tano build android --output ./dist
+```

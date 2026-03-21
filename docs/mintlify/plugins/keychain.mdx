@@ -1,0 +1,29 @@
+---
+title: 'Keychain'
+description: 'Securely store credentials in the system keychain'
+---
+
+## Usage
+
+```javascript
+// Store a value
+await window.Tano.invoke('keychain', 'set', {
+    key: 'api_token',
+    value: 'sk-abc123'
+});
+
+// Retrieve a value
+const result = await window.Tano.invoke('keychain', 'get', { key: 'api_token' });
+// result: { value: 'sk-abc123' }
+
+// Delete a value
+await window.Tano.invoke('keychain', 'delete', { key: 'api_token' });
+```
+
+## Methods
+
+| Method | Params | Returns |
+|--------|--------|---------|
+| `set` | `{ key, value }` | `void` |
+| `get` | `{ key: string }` | `{ value: string }` |
+| `delete` | `{ key: string }` | `void` |

@@ -1,0 +1,40 @@
+---
+title: 'File System'
+description: 'Read and write files in the app sandbox'
+---
+
+## Usage
+
+```javascript
+// Write a file
+await window.Tano.invoke('fs', 'write', {
+    path: 'notes/todo.txt',
+    content: 'Buy groceries'
+});
+
+// Read a file
+const result = await window.Tano.invoke('fs', 'read', { path: 'notes/todo.txt' });
+// result: { content: 'Buy groceries' }
+
+// List directory
+const files = await window.Tano.invoke('fs', 'list', { path: 'notes' });
+// files: { entries: ['todo.txt'] }
+
+// Delete a file
+await window.Tano.invoke('fs', 'delete', { path: 'notes/todo.txt' });
+
+// Check if file exists
+const exists = await window.Tano.invoke('fs', 'exists', { path: 'notes/todo.txt' });
+// exists: { exists: false }
+```
+
+## Methods
+
+| Method | Params | Returns |
+|--------|--------|---------|
+| `read` | `{ path: string }` | `{ content: string }` |
+| `write` | `{ path, content }` | `void` |
+| `delete` | `{ path: string }` | `void` |
+| `exists` | `{ path: string }` | `{ exists: boolean }` |
+| `list` | `{ path: string }` | `{ entries: string[] }` |
+| `mkdir` | `{ path: string }` | `void` |

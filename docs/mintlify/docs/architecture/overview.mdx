@@ -1,0 +1,26 @@
+---
+title: 'Architecture Overview'
+description: 'How Tano is structured internally'
+---
+
+## Package Map
+
+```
+tano/
+├── packages/core        # TanoJSC runtime (JSC + Bun shims)
+├── packages/bridge      # UDS bridge + plugin router
+├── packages/webview     # WKWebView wrapper
+├── packages/plugins/*   # 11 native plugins
+├── packages/cli         # CLI tooling (Bun/TypeScript)
+├── Sources/             # Swift Package sources
+└── templates/           # Project templates
+```
+
+## Data Flow
+
+1. User interacts with the web UI in WKWebView
+2. JS calls `window.Tano.invoke(plugin, method, params)`
+3. WKScriptMessageHandler routes to the bridge
+4. Bridge dispatches to the registered plugin via UDS
+5. Plugin executes native code and returns JSON
+6. Result is delivered back to the JS callback

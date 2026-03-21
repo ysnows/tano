@@ -1,0 +1,21 @@
+---
+title: 'Performance'
+description: 'Performance characteristics and optimization tips'
+---
+
+## Benchmarks
+
+| Operation | Time |
+|-----------|------|
+| Cold start (runtime init) | ~120ms |
+| Plugin call round-trip | ~0.5ms |
+| SQLite query (100 rows) | ~2ms |
+| WebView load (cached) | ~80ms |
+
+## Tips
+
+- **Batch plugin calls** — each `invoke()` has a small overhead. Batch reads when possible.
+- **Use SQLite** — it is faster than file-based storage for structured data.
+- **Minimize bridge traffic** — send only the data you need between web and native.
+- **Preload web assets** — bundle static files in the app for instant loads.
+- **Use SSE for streaming** — Server-Sent Events via `fetch()` are efficient for real-time updates.

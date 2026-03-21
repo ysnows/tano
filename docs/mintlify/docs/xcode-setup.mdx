@@ -1,0 +1,38 @@
+---
+title: 'Xcode Setup'
+description: 'Configure Xcode for Tano development'
+---
+
+## Requirements
+
+- Xcode 15.0 or later
+- iOS 16.0+ deployment target
+- macOS 14 (Sonoma) or later recommended
+
+## Project Setup
+
+When you run `tano create`, an Xcode project is generated automatically. To set it up manually:
+
+1. Create a new iOS App project in Xcode
+2. Add the Tano Swift package dependency
+3. Set the deployment target to iOS 16.0+
+4. Add required capabilities (camera, Face ID, etc.) in Signing & Capabilities
+
+## Capabilities
+
+Add these based on which plugins you use:
+
+| Plugin | Capability / Info.plist Key |
+|--------|---------------------------|
+| Camera | `NSCameraUsageDescription` |
+| Biometrics | `NSFaceIDUsageDescription` |
+| Notifications | Push Notifications capability |
+| Photo Library | `NSPhotoLibraryUsageDescription` |
+
+## Running in Simulator
+
+```bash
+tano dev    # Starts Bun + opens Simulator
+```
+
+Or press Cmd+R in Xcode after configuring the scheme to start the Bun server as a pre-action.

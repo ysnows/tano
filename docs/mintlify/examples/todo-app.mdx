@@ -1,0 +1,34 @@
+---
+title: 'Todo App'
+description: 'A full-featured todo app with SQLite persistence'
+---
+
+## What it does
+
+A todo list app that stores tasks in an on-device SQLite database. Demonstrates CRUD operations, plugin usage, and the Tano server/client architecture.
+
+## Features
+
+- Add, complete, and delete todos
+- Persistent storage with SQLite
+- Haptic feedback on actions
+- Clean vanilla HTML/CSS/JS frontend
+
+## Run it
+
+```bash
+cd examples/todo-app
+bun install
+tano dev
+```
+
+## Key Code
+
+**Server** — serves the web UI and provides a REST API backed by SQLite.
+
+**Client** — vanilla JS that calls `fetch('/api/todos')` and `window.Tano.invoke()` for haptics.
+
+## Plugins Used
+
+- `sqlite` — Todo storage
+- `haptics` — Feedback on add/complete/delete

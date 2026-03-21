@@ -1,0 +1,43 @@
+---
+title: 'Crypto'
+description: 'Cryptographic hashing, encryption, and random bytes'
+---
+
+## Usage
+
+```javascript
+// SHA-256 hash
+const hash = await window.Tano.invoke('crypto', 'hash', {
+    algorithm: 'sha256',
+    data: 'hello'
+});
+// hash: { hash: '2cf24dba5fb0a30e...' }
+
+// Generate random bytes
+const random = await window.Tano.invoke('crypto', 'randomBytes', { count: 32 });
+// random: { bytes: 'base64-encoded-string' }
+
+// AES encrypt
+const encrypted = await window.Tano.invoke('crypto', 'encrypt', {
+    algorithm: 'aes-gcm',
+    key: keyBase64,
+    data: 'secret message'
+});
+
+// AES decrypt
+const decrypted = await window.Tano.invoke('crypto', 'decrypt', {
+    algorithm: 'aes-gcm',
+    key: keyBase64,
+    data: encrypted.ciphertext,
+    iv: encrypted.iv
+});
+```
+
+## Methods
+
+| Method | Params | Returns |
+|--------|--------|---------|
+| `hash` | `{ algorithm, data }` | `{ hash: string }` |
+| `randomBytes` | `{ count: number }` | `{ bytes: string }` |
+| `encrypt` | `{ algorithm, key, data }` | `{ ciphertext, iv }` |
+| `decrypt` | `{ algorithm, key, data, iv }` | `{ plaintext: string }` |

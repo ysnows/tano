@@ -1,0 +1,26 @@
+---
+title: 'Runtime'
+description: 'TanoJSC — the on-device JavaScript runtime'
+---
+
+## What is TanoJSC?
+
+TanoJSC is a lightweight JavaScript runtime built on JavaScriptCore (JSC). It provides Bun-compatible API shims so your server code runs identically on device and in development.
+
+## Supported APIs
+
+- `Bun.serve()` — HTTP server with request/response
+- `Bun.file()` — File I/O
+- `Bun.build()` — Used at build time for bundling
+- `console.log/warn/error` — Routed to native logging
+- `fetch()` — Native URLSession-backed
+- `WebSocket` — Native URLSessionWebSocketTask-backed
+- `setTimeout/setInterval` — Timer shims
+
+## How it starts
+
+1. App launch triggers `TanoRuntime.start()`
+2. JSC context is created with Bun API polyfills
+3. Bundled server JS is evaluated
+4. `Bun.serve()` binds to a UDS socket
+5. WebView connects to the local server

@@ -1,0 +1,30 @@
+---
+title: 'Share'
+description: 'Native share sheet for text, URLs, and files'
+---
+
+## Usage
+
+```javascript
+// Share text
+await window.Tano.invoke('share', 'share', {
+    text: 'Check out this app!'
+});
+
+// Share a URL
+await window.Tano.invoke('share', 'share', {
+    url: 'https://tano.dev'
+});
+
+// Share text and URL together
+await window.Tano.invoke('share', 'share', {
+    text: 'Built with Tano',
+    url: 'https://tano.dev'
+});
+```
+
+## Methods
+
+| Method | Params | Returns |
+|--------|--------|---------|
+| `share` | `{ text?, url? }` | `{ completed: boolean }` |

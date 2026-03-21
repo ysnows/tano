@@ -1,0 +1,41 @@
+---
+title: 'iOS Integration'
+description: 'Add Tano to an existing iOS project'
+---
+
+## Swift Package Manager
+
+Add Tano as a dependency in your `Package.swift` or via Xcode:
+
+```
+https://github.com/user/tano.git
+```
+
+## Usage
+
+```swift
+import Tano
+
+// In your AppDelegate or SwiftUI App
+let tano = TanoRuntime()
+tano.loadPlugins([
+    SQLitePlugin(),
+    ClipboardPlugin(),
+    HapticsPlugin()
+])
+tano.start()
+```
+
+## Add the WebView
+
+```swift
+import TanoWebView
+
+struct ContentView: View {
+    var body: some View {
+        TanoWebView(url: "http://localhost:18899")
+    }
+}
+```
+
+That is it. Your web app now has access to all registered native plugins.

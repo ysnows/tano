@@ -1,0 +1,25 @@
+---
+title: 'Biometrics'
+description: 'Face ID and Touch ID authentication'
+---
+
+## Usage
+
+```javascript
+// Check availability
+const available = await window.Tano.invoke('biometrics', 'available', {});
+// available: { available: true, type: 'faceID' }
+
+// Authenticate
+const auth = await window.Tano.invoke('biometrics', 'authenticate', {
+    reason: 'Unlock your notes'
+});
+// auth: { success: true }
+```
+
+## Methods
+
+| Method | Params | Returns |
+|--------|--------|---------|
+| `available` | `{}` | `{ available: boolean, type: string }` |
+| `authenticate` | `{ reason: string }` | `{ success: boolean }` |

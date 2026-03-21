@@ -1,0 +1,64 @@
+{
+    "$schema": "https://mintlify.com/docs.json",
+    "theme": "venus",
+    "name": "Tano",
+    "colors": {
+        "primary": "#007AFF",
+        "light": "#4DA3FF",
+        "dark": "#0055CC"
+    },
+    "logo": {
+        "light": "/logo/light.svg",
+        "dark": "/logo/dark.svg"
+    },
+    "favicon": "/favicon.svg",
+    "topbar": {
+        "style": "default"
+    },
+    "tabs": [
+        { "id": "docs", "name": "Documentation" },
+        { "id": "plugins", "name": "Plugins" },
+        { "id": "examples", "name": "Examples" }
+    ],
+    "anchors": [
+        { "name": "GitHub", "icon": "github", "url": "https://github.com/user/tano" },
+        { "name": "npm", "icon": "npm", "url": "https://www.npmjs.com/package/@tano/cli" }
+    ],
+    "navigation": {
+        "docs": [
+            {
+                "group": "Getting Started",
+                "pages": ["docs/introduction", "docs/quickstart", "docs/how-it-works"]
+            },
+            {
+                "group": "Guides",
+                "pages": ["docs/ios-integration", "docs/android-integration", "docs/xcode-setup", "docs/performance"]
+            },
+            {
+                "group": "CLI",
+                "pages": ["docs/cli/create", "docs/cli/dev", "docs/cli/build", "docs/cli/run", "docs/cli/doctor"]
+            },
+            {
+                "group": "Architecture",
+                "pages": ["docs/architecture/overview", "docs/architecture/runtime", "docs/architecture/bridge", "docs/architecture/plugins"]
+            }
+        ],
+        "plugins": [
+            {
+                "group": "Official Plugins",
+                "pages": ["plugins/sqlite", "plugins/clipboard", "plugins/crypto", "plugins/fs", "plugins/haptics", "plugins/keychain", "plugins/biometrics", "plugins/share", "plugins/notifications", "plugins/http", "plugins/camera"]
+            }
+        ],
+        "examples": [
+            {
+                "group": "Example Apps",
+                "pages": ["examples/todo-app", "examples/chat-app", "examples/notes-app"]
+            }
+        ]
+    },
+    "footer": {
+        "socials": {
+            "github": "https://github.com/user/tano"
+        }
+    }
+}

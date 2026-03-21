@@ -1,0 +1,63 @@
+---
+title: 'SQLite'
+description: 'On-device SQLite database'
+---
+
+## Installation
+
+The SQLite plugin is included with Tano. Register it in your app:
+
+```swift
+pluginRouter.register(plugin: SQLitePlugin())
+```
+
+## Usage
+
+```javascript
+// Open database
+const db = await window.Tano.invoke('sqlite', 'open', { path: 'app.db' });
+
+// Create table
+await window.Tano.invoke('sqlite', 'run', {
+    handle: db,
+    sql: 'CREATE TABLE IF NOT EXISTS todos (id INTEGER PRIMARY KEY, text TEXT, done INTEGER)'
+});
+
+// Insert
+const result = await window.Tano.invoke('sqlite', 'run', {
+    handle: db,
+    sql: 'INSERT INTO todos (text, done) VALUES (?, ?)',
+    params: ['Buy milk', 0]
+});
+// result: { changes: 1, lastInsertRowId: 1 }
+
+// Query
+const todos = await window.Tano.invoke('sqlite', 'query', {
+    handle: db,
+    sql: 'SELECT * FROM todos WHERE done = ?',
+    params: [0]
+});
+// todos: [{ id: 1, text: 'Buy milk', done: 0 }]
+
+// Close
+await window.Tano.invoke('sqlite', 'close', { handle: db });
+```
+
+## With TypeScript
+
+```typescript
+import { open, query, run, close } from '@tano/plugin-sqlite'
+
+const db = await open('app.db')
+const todos = await query(db, 'SELECT * FROM todos')
+await close(db)
+```
+
+## Methods
+
+| Method | Params | Returns |
+|--------|--------|---------|
+| `open` | `{ path: string }` | `string` (handle) |
+| `query` | `{ handle, sql, params? }` | `Array<Record>` |
+| `run` | `{ handle, sql, params? }` | `{ changes, lastInsertRowId }` |
+| `close` | `{ handle }` | `void` |
