@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  swift-tests:
+    name: Swift Tests
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        run: swift build
+
+      - name: Run tests
+        run: swift test
+
+  plugin-tests:
+    name: Plugin Tests
+    runs-on: macos-14
+    strategy:
+      matrix:
+        plugin: [sqlite, clipboard, haptics, keychain, fs, crypto, biometrics, share, notifications, http, camera]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test ${{ matrix.plugin }}
+        run: cd packages/plugins/${{ matrix.plugin }} && swift test
+
+  cli-check:
+    name: CLI Check
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: CLI help
+        run: cd packages/cli && bun run src/index.ts --help
+
+      - name: CLI doctor
+        run: cd packages/cli && bun run src/index.ts doctor || true
+
+      - name: CLI create
+        run: |
+          cd /tmp
+          bun run ${{ github.workspace }}/packages/cli/src/index.ts create test-app
+          ls test-app/tano.config.ts
