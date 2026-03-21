@@ -11,6 +11,10 @@ export default {
     web: {
         entry: './src/web/index.html',
     },
+    env: {
+        // Set your Groq API key here or via environment variable
+        // GROQ_API_KEY: 'gsk_...',
+    },
     plugins: [],
     ios: { deploymentTarget: '15.0' },
     android: { minSdk: 24 },
