@@ -1,6 +1,0 @@
-{
-    "require": {
-        "react/http": "^1.10",
-        "react/socket": "^1.15"
-    }
-}

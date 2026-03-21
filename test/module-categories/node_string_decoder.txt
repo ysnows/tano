@@ -1,4 +1,0 @@
-parallel/test-string-decoder-end.js
-parallel/test-string-decoder-fuzz.js
-parallel/test-string-decoder.js
-parallel/test-stringbytes-external.js
