@@ -91,6 +91,11 @@ public enum TanoBridgeJS {
                 for (var i = 0; i < listeners.length; i++) {
                     try { listeners[i](data); } catch(e) { console.error('Tano event handler error:', e); }
                 }
+            },
+
+            // Deep link handler — convenience wrapper around Tano.on('deepLink', ...)
+            onDeepLink: function(callback) {
+                return window.Tano.on('deepLink', callback);
             }
         };
     })();
