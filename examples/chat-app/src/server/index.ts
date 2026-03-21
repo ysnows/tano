@@ -23,7 +23,7 @@ const conversationHistory: ChatMessage[] = [
     { role: 'system', content: 'You are a helpful assistant running inside a Tano mobile app. Keep responses concise.' }
 ];
 
-export default Bun.serve({
+const server = Bun.serve({
     port: 18899,
     hostname: '127.0.0.1',
 

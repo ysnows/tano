@@ -12,8 +12,8 @@ export default {
         entry: './src/web/index.html',
     },
     env: {
-        // Set your Groq API key here or via environment variable
-        // GROQ_API_KEY: 'gsk_...',
+        // Set via environment: GROQ_API_KEY=gsk_... tano dev
+        // GROQ_API_KEY: '',
     },
     plugins: [],
     ios: { deploymentTarget: '15.0' },
