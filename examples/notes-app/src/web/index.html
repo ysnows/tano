@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>NotesApp</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f7;
+            color: #1d1d1f;
+            min-height: 100vh;
+            padding: 24px;
+            padding-top: max(24px, env(safe-area-inset-top));
+            padding-bottom: max(24px, env(safe-area-inset-bottom));
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1d1d1f;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn:active {
+            opacity: 0.8;
+        }
+
+        .btn-primary {
+            background: #007AFF;
+            color: #fff;
+        }
+
+        .btn-secondary {
+            background: #e9e9eb;
+            color: #1d1d1f;
+        }
+
+        .btn-danger {
+            background: #ff3b30;
+            color: #fff;
+        }
+
+        .btn-lock {
+            background: #ff9500;
+            color: #fff;
+        }
+
+        /* Lock screen overlay */
+        .lock-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            color: #fff;
+        }
+
+        .lock-overlay .lock-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .lock-overlay h2 {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+
+        .lock-overlay p {
+            color: #aaa;
+            margin-bottom: 24px;
+            font-size: 0.9rem;
+        }
+
+        .lock-overlay button {
+            padding: 14px 40px;
+            border-radius: 12px;
+            background: #007AFF;
+            color: #fff;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Note editor modal */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            padding: 24px;
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal h2 {
+            font-size: 1.2rem;
+            margin-bottom: 16px;
+        }
+
+        .modal input,
+        .modal textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #d2d2d7;
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+            margin-bottom: 12px;
+        }
+
+        .modal input:focus,
+        .modal textarea:focus {
+            border-color: #007AFF;
+        }
+
+        .modal textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        /* Notes list */
+        .notes-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .note-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            cursor: pointer;
+            transition: box-shadow 0.2s;
+        }
+
+        .note-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        }
+
+        .note-card h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #1d1d1f;
+        }
+
+        .note-card .preview {
+            font-size: 0.85rem;
+            color: #86868b;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .note-card .meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            font-size: 0.75rem;
+            color: #aeaeb2;
+        }
+
+        .note-card .actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .note-card .actions button {
+            background: none;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+            color: #86868b;
+            transition: background 0.15s;
+        }
+
+        .note-card .actions button:hover {
+            background: #f0f0f0;
+        }
+
+        .note-card .actions button.delete:hover {
+            color: #ff3b30;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 24px;
+            color: #86868b;
+        }
+
+        .empty-state .icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .empty-state p {
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .hash-display {
+            font-family: 'SF Mono', 'Menlo', monospace;
+            font-size: 0.7rem;
+            color: #86868b;
+            word-break: break-all;
+            margin-top: 6px;
+            padding: 6px 8px;
+            background: #f5f5f7;
+            border-radius: 6px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1d1d1f;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            z-index: 200;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .toast.visible {
+            opacity: 1;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 0.8rem;
+            color: #86868b;
+        }
+
+        footer strong {
+            color: #1d1d1f;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Notes</h1>
+            <div class="header-actions">
+                <button class="btn btn-lock" onclick="lockApp()" title="Lock app">Lock</button>
+                <button class="btn btn-primary" onclick="openEditor()">+ New Note</button>
+            </div>
+        </header>
+
+        <div id="notes-list" class="notes-list">
+            <div class="empty-state" id="empty-state">
+                <div class="icon">&#128221;</div>
+                <p>No notes yet. Tap "New Note" to get started.</p>
+            </div>
+        </div>
+
+        <footer>
+            <p>Built with <strong>Tano</strong> &mdash; on-device Bun server + WebView</p>
+            <p style="margin-top: 4px;">
+                Uses <strong>biometrics</strong>, <strong>clipboard</strong>,
+                and <strong>crypto</strong> plugins
+            </p>
+        </footer>
+    </div>
+
+    <!-- Lock screen overlay -->
+    <div class="lock-overlay" id="lock-overlay" style="display: none;">
+        <div class="lock-icon">&#128274;</div>
+        <h2>Notes Locked</h2>
+        <p>Authenticate to unlock your notes</p>
+        <button onclick="unlockApp()">Unlock with Biometrics</button>
+    </div>
+
+    <!-- Note editor modal -->
+    <div class="modal-backdrop" id="editor-modal" style="display: none;">
+        <div class="modal">
+            <h2 id="editor-title">New Note</h2>
+            <input type="text" id="note-title" placeholder="Title" />
+            <textarea id="note-content" placeholder="Write your note..."></textarea>
+            <div id="note-hash" class="hash-display" style="display: none;"></div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeEditor()">Cancel</button>
+                <button class="btn btn-secondary" onclick="hashContent()">Hash</button>
+                <button class="btn btn-primary" onclick="saveNote()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast notification -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const API = '/api/notes';
+        let notes = [];
+        let editingId = null;
+        let isLocked = false;
+
+        const listEl = document.getElementById('notes-list');
+        const emptyEl = document.getElementById('empty-state');
+        const lockOverlay = document.getElementById('lock-overlay');
+        const editorModal = document.getElementById('editor-modal');
+        const editorTitleEl = document.getElementById('editor-title');
+        const noteTitleInput = document.getElementById('note-title');
+        const noteContentInput = document.getElementById('note-content');
+        const noteHashEl = document.getElementById('note-hash');
+        const toastEl = document.getElementById('toast');
+
+        // ---------- Toast ----------
+
+        let toastTimeout;
+        function showToast(message) {
+            toastEl.textContent = message;
+            toastEl.classList.add('visible');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toastEl.classList.remove('visible');
+            }, 2000);
+        }
+
+        // ---------- Lock / Unlock ----------
+
+        function lockApp() {
+            isLocked = true;
+            lockOverlay.style.display = 'flex';
+        }
+
+        async function unlockApp() {
+            try {
+                if (window.Tano && window.Tano.invoke) {
+                    const result = await window.Tano.invoke('biometrics', 'authenticate');
+                    if (result && result.success) {
+                        isLocked = false;
+                        lockOverlay.style.display = 'none';
+                        showToast('Unlocked');
+                    } else {
+                        showToast('Authentication failed');
+                    }
+                } else {
+                    // Fallback for browser development
+                    isLocked = false;
+                    lockOverlay.style.display = 'none';
+                    showToast('Unlocked (dev mode)');
+                }
+            } catch (err) {
+                console.error('Biometric auth error:', err);
+                // Fallback: unlock anyway in dev
+                isLocked = false;
+                lockOverlay.style.display = 'none';
+                showToast('Unlocked (fallback)');
+            }
+        }
+
+        // ---------- Editor ----------
+
+        function openEditor(id) {
+            editingId = id || null;
+            noteHashEl.style.display = 'none';
+            noteHashEl.textContent = '';
+
+            if (editingId) {
+                const note = notes.find(n => n.id === editingId);
+                if (!note) return;
+                editorTitleEl.textContent = 'Edit Note';
+                noteTitleInput.value = note.title;
+                noteContentInput.value = note.content;
+            } else {
+                editorTitleEl.textContent = 'New Note';
+                noteTitleInput.value = '';
+                noteContentInput.value = '';
+            }
+
+            editorModal.style.display = 'flex';
+            noteTitleInput.focus();
+        }
+
+        function closeEditor() {
+            editorModal.style.display = 'none';
+            editingId = null;
+        }
+
+        async function saveNote() {
+            const title = noteTitleInput.value.trim();
+            const content = noteContentInput.value.trim();
+            if (!title) {
+                showToast('Title is required');
+                return;
+            }
+
+            try {
+                if (editingId) {
+                    const res = await fetch(`${API}/${editingId}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ title, content })
+                    });
+                    const updated = await res.json();
+                    notes = notes.map(n => n.id === editingId ? updated : n);
+                    showToast('Note updated');
+                } else {
+                    const res = await fetch(API, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ title, content })
+                    });
+                    const note = await res.json();
+                    notes.unshift(note);
+                    showToast('Note created');
+                }
+                closeEditor();
+                render();
+            } catch (err) {
+                console.error('Failed to save note:', err);
+                showToast('Failed to save');
+            }
+        }
+
+        // ---------- Hash ----------
+
+        async function hashContent() {
+            const content = noteContentInput.value;
+            if (!content.trim()) {
+                showToast('Nothing to hash');
+                return;
+            }
+
+            try {
+                let hash;
+                if (window.Tano && window.Tano.invoke) {
+                    const result = await window.Tano.invoke('crypto', 'hash', {
+                        algorithm: 'sha256',
+                        data: content
+                    });
+                    hash = result.hash;
+                } else {
+                    // Fallback: use Web Crypto API
+                    const encoder = new TextEncoder();
+                    const data = encoder.encode(content);
+                    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+                    const hashArray = Array.from(new Uint8Array(hashBuffer));
+                    hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                }
+                noteHashEl.textContent = 'SHA-256: ' + hash;
+                noteHashEl.style.display = 'block';
+            } catch (err) {
+                console.error('Hash error:', err);
+                showToast('Failed to hash');
+            }
+        }
+
+        // ---------- Clipboard ----------
+
+        async function copyToClipboard(text) {
+            try {
+                if (window.Tano && window.Tano.invoke) {
+                    await window.Tano.invoke('clipboard', 'copy', { text: text });
+                } else {
+                    await navigator.clipboard.writeText(text);
+                }
+                showToast('Copied to clipboard');
+            } catch (err) {
+                console.error('Copy error:', err);
+                showToast('Failed to copy');
+            }
+        }
+
+        // ---------- Delete ----------
+
+        async function deleteNote(id, event) {
+            event.stopPropagation();
+            try {
+                await fetch(`${API}/${id}`, { method: 'DELETE' });
+                notes = notes.filter(n => n.id !== id);
+                render();
+                showToast('Note deleted');
+            } catch (err) {
+                console.error('Failed to delete note:', err);
+                showToast('Failed to delete');
+            }
+        }
+
+        // ---------- Render ----------
+
+        function render() {
+            if (notes.length === 0) {
+                listEl.innerHTML = '';
+                listEl.appendChild(emptyEl);
+                emptyEl.style.display = 'block';
+                return;
+            }
+
+            emptyEl.style.display = 'none';
+            listEl.innerHTML = notes.map(note => {
+                const date = new Date(note.updatedAt).toLocaleDateString(undefined, {
+                    month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                });
+                return `
+                    <div class="note-card" onclick="openEditor(${note.id})">
+                        <h3>${escapeHtml(note.title)}</h3>
+                        <div class="preview">${escapeHtml(note.content) || 'No content'}</div>
+                        <div class="meta">
+                            <span>${date}</span>
+                            <div class="actions">
+                                <button onclick="copyToClipboard('${escapeJs(note.title + '\\n' + note.content)}')" title="Copy to clipboard">&#128203;</button>
+                                <button class="delete" onclick="deleteNote(${note.id}, event)" title="Delete">&times;</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ---------- Data Loading ----------
+
+        async function loadNotes() {
+            try {
+                const res = await fetch(API);
+                notes = await res.json();
+                render();
+            } catch (err) {
+                console.error('Failed to load notes:', err);
+            }
+        }
+
+        // ---------- Helpers ----------
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function escapeJs(str) {
+            return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n');
+        }
+
+        // Initial load
+        loadNotes();
+    </script>
+</body>
+</html>
