@@ -4,6 +4,7 @@ import { startHMRServer } from "../utils/hmr-server";
 import { getHMRClientScript } from "../utils/hmr-client";
 import { existsSync } from "fs";
 import { resolve, join, extname } from "path";
+import { networkInterfaces } from "os";
 
 interface TanoConfig {
     app?: { name?: string };
@@ -12,6 +13,18 @@ interface TanoConfig {
 }
 
 const HMR_PORT = 18900;
+
+function getLocalIP(): string {
+    const interfaces = networkInterfaces();
+    for (const name of Object.keys(interfaces)) {
+        for (const iface of interfaces[name]!) {
+            if (iface.family === 'IPv4' && !iface.internal) {
+                return iface.address;
+            }
+        }
+    }
+    return '127.0.0.1';
+}
 
 async function loadConfig(cwd: string): Promise<TanoConfig> {
     const configPath = join(cwd, "tano.config.ts");
@@ -291,6 +304,15 @@ export default async function dev(args: string[]): Promise<void> {
     log.dim(`  Server: http://127.0.0.1:${serverPort}`);
     log.dim(`  HMR:    ws://127.0.0.1:${HMR_PORT}`);
     log.info("");
+
+    // Tano Go connection info
+    const localIP = getLocalIP();
+    if (localIP !== '127.0.0.1') {
+        log.info("");
+        log.success("Tano Go: Open the Tano Go app on your device and enter:");
+        log.info(`  http://${localIP}:${serverPort}`);
+        log.info("");
+    }
 
     // 9. Log HMR client injection hint
     log.dim(`  Inject HMR client in your HTML before </body>:`);
