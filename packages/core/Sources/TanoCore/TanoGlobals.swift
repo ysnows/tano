@@ -31,7 +31,10 @@ enum TanoGlobals {
         // 6. fetch → URLSession
         TanoFetch.inject(into: context, jscPerform: jscPerform)
 
-        // 7. Additional polyfills
+        // 7. WebSocket → URLSessionWebSocketTask
+        TanoWebSocket.inject(into: context, jscPerform: jscPerform)
+
+        // 8. Additional polyfills
         JSCHelpers.evaluate(context, script: polyfills, sourceURL: "tano://globals/polyfills.js")
     }
 
