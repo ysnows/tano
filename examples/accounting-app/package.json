@@ -1,0 +1,12 @@
+{
+  "name": "tano-accounting",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "tano dev",
+    "start": "bun run src/server/index.ts"
+  },
+  "dependencies": {
+    "@tano/plugin-sqlite": "workspace:*"
+  }
+}

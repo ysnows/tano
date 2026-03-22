@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <title>记账</title>
+    <style>
+        :root {
+            --bg: #0f0f14;
+            --bg2: #1a1a24;
+            --bg3: #252535;
+            --text: #e8e8f0;
+            --text2: #9898b0;
+            --accent: #6366f1;
+            --green: #22c55e;
+            --red: #ef4444;
+            --orange: #f97316;
+            --radius: 14px;
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100dvh;
+            overflow-x: hidden;
+            padding-top: var(--safe-top);
+            padding-bottom: calc(70px + var(--safe-bottom));
+        }
+
+        /* ── Header ── */
+        .header {
+            padding: 16px 20px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 { font-size: 28px; font-weight: 700; }
+        .month-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg2);
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .month-selector:active { opacity: 0.7; }
+        .month-arrow { font-size: 18px; padding: 0 4px; }
+
+        /* ── Summary Card ── */
+        .summary {
+            margin: 8px 16px 16px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border-radius: var(--radius);
+            padding: 20px;
+            color: #fff;
+        }
+        .summary-balance { font-size: 32px; font-weight: 700; letter-spacing: -1px; }
+        .summary-label { font-size: 13px; opacity: 0.75; margin-bottom: 4px; }
+        .summary-row {
+            display: flex;
+            gap: 16px;
+            margin-top: 16px;
+        }
+        .summary-item { flex: 1; }
+        .summary-item .amount { font-size: 20px; font-weight: 600; }
+        .summary-item .label { font-size: 12px; opacity: 0.7; }
+        .income-dot, .expense-dot {
+            display: inline-block;
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+        .income-dot { background: #86efac; }
+        .expense-dot { background: #fca5a5; }
+
+        /* ── Transaction List ── */
+        .section-title {
+            padding: 12px 20px 8px;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text2);
+        }
+        .tx-list { padding: 0 16px; }
+        .tx-group-header {
+            font-size: 13px;
+            color: var(--text2);
+            padding: 12px 4px 6px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .tx-item {
+            display: flex;
+            align-items: center;
+            background: var(--bg2);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .tx-item:active { transform: scale(0.98); }
+        .tx-icon {
+            width: 40px; height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        .tx-info { flex: 1; min-width: 0; }
+        .tx-category { font-size: 15px; font-weight: 500; }
+        .tx-note { font-size: 12px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .tx-amount { font-size: 16px; font-weight: 600; text-align: right; }
+        .tx-amount.income { color: var(--green); }
+        .tx-amount.expense { color: var(--red); }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text2);
+        }
+        .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+        .empty-state p { font-size: 14px; }
+
+        /* ── Stats Tab ── */
+        .stats-section { padding: 0 16px; }
+        .chart-container {
+            background: var(--bg2);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        .chart-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+        .bar-chart { display: flex; flex-direction: column; gap: 8px; }
+        .bar-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .bar-label {
+            width: 60px;
+            font-size: 13px;
+            text-align: right;
+            flex-shrink: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .bar-track {
+            flex: 1;
+            height: 24px;
+            background: var(--bg3);
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+        }
+        .bar-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.5s ease;
+            min-width: 2px;
+        }
+        .bar-value {
+            font-size: 12px;
+            color: var(--text2);
+            width: 70px;
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        /* ── Budget Tab ── */
+        .budget-card {
+            background: var(--bg2);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin: 0 16px 12px;
+        }
+        .budget-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .budget-cat {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+            font-weight: 500;
+        }
+        .budget-amounts { font-size: 13px; color: var(--text2); }
+        .budget-bar {
+            height: 8px;
+            background: var(--bg3);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .budget-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        .budget-over { background: var(--red) !important; }
+
+        /* ── Tabs ── */
+        .tab-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg2);
+            border-top: 1px solid var(--bg3);
+            display: flex;
+            padding-bottom: var(--safe-bottom);
+            z-index: 100;
+        }
+        .tab {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 0 6px;
+            font-size: 11px;
+            color: var(--text2);
+            cursor: pointer;
+            user-select: none;
+            transition: color 0.2s;
+        }
+        .tab.active { color: var(--accent); }
+        .tab .tab-icon { font-size: 22px; margin-bottom: 2px; }
+
+        /* ── FAB ── */
+        .fab {
+            position: fixed;
+            bottom: calc(80px + var(--safe-bottom));
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(99,102,241,0.4);
+            cursor: pointer;
+            z-index: 90;
+            transition: transform 0.2s;
+        }
+        .fab:active { transform: scale(0.9); }
+
+        /* ── Modal ── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 200;
+            align-items: flex-end;
+            justify-content: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: var(--bg2);
+            border-radius: 20px 20px 0 0;
+            padding: 20px 20px calc(20px + var(--safe-bottom));
+            width: 100%;
+            max-width: 500px;
+            max-height: 85dvh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .modal-title { font-size: 18px; font-weight: 600; }
+        .modal-close {
+            width: 32px; height: 32px;
+            background: var(--bg3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            color: var(--text2);
+        }
+
+        /* ── Form ── */
+        .form-group { margin-bottom: 16px; }
+        .form-label { font-size: 13px; color: var(--text2); margin-bottom: 6px; display: block; }
+        .form-input {
+            width: 100%;
+            background: var(--bg3);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 16px;
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-input:focus { border-color: var(--accent); }
+        .form-input::placeholder { color: var(--text2); opacity: 0.5; }
+
+        .type-toggle {
+            display: flex;
+            background: var(--bg3);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .type-btn {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        .type-btn.active.expense { background: var(--red); color: #fff; }
+        .type-btn.active.income { background: var(--green); color: #fff; }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .cat-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 4px;
+            background: var(--bg3);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        .cat-btn:active { transform: scale(0.95); }
+        .cat-btn.selected { border: 2px solid var(--accent); background: rgba(99,102,241,0.1); }
+        .cat-btn .cat-icon { font-size: 24px; margin-bottom: 4px; }
+        .cat-btn .cat-name { font-size: 11px; color: var(--text2); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .submit-btn:active { opacity: 0.8; }
+        .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        /* ── Swipe to delete ── */
+        .tx-wrapper {
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            margin-bottom: 8px;
+        }
+        .tx-delete-bg {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 80px;
+            background: var(--red);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+            border-radius: 12px;
+        }
+
+        .page { display: none; }
+        .page.active { display: block; }
+
+        /* ── Loading ── */
+        .loading {
+            display: flex;
+            justify-content: center;
+            padding: 40px;
+        }
+        .spinner {
+            width: 24px; height: 24px;
+            border: 3px solid var(--bg3);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<!-- ─── Header ─── -->
+<div class="header">
+    <h1>记账</h1>
+    <div class="month-selector" id="monthSelector">
+        <span class="month-arrow" onclick="changeMonth(-1); event.stopPropagation();">‹</span>
+        <span id="monthLabel"></span>
+        <span class="month-arrow" onclick="changeMonth(1); event.stopPropagation();">›</span>
+    </div>
+</div>
+
+<!-- ─── Pages ─── -->
+
+<!-- Transactions Page -->
+<div class="page active" id="pageTx">
+    <div class="summary" id="summaryCard">
+        <div class="summary-label">本月结余</div>
+        <div class="summary-balance" id="balanceAmount">¥0.00</div>
+        <div class="summary-row">
+            <div class="summary-item">
+                <div class="label"><span class="income-dot"></span>收入</div>
+                <div class="amount" id="incomeAmount">¥0.00</div>
+            </div>
+            <div class="summary-item">
+                <div class="label"><span class="expense-dot"></span>支出</div>
+                <div class="amount" id="expenseAmount">¥0.00</div>
+            </div>
+        </div>
+    </div>
+    <div id="txList" class="tx-list"></div>
+</div>
+
+<!-- Stats Page -->
+<div class="page" id="pageStats">
+    <div class="summary" id="statsSummary" style="margin-top:8px">
+        <div class="summary-label">本月总支出</div>
+        <div class="summary-balance" id="statsExpense">¥0.00</div>
+    </div>
+    <div class="section-title">支出分类</div>
+    <div class="stats-section" id="categoryChart"></div>
+    <div class="section-title">收入分类</div>
+    <div class="stats-section" id="incomeCategoryChart"></div>
+</div>
+
+<!-- Budget Page -->
+<div class="page" id="pageBudget">
+    <div class="section-title">本月预算</div>
+    <div id="budgetList"></div>
+</div>
+
+<!-- ─── FAB ─── -->
+<div class="fab" id="fabAdd" onclick="openAddModal()">+</div>
+
+<!-- ─── Tab Bar ─── -->
+<div class="tab-bar">
+    <div class="tab active" data-page="pageTx" onclick="switchTab(this)">
+        <span class="tab-icon">📝</span>
+        明细
+    </div>
+    <div class="tab" data-page="pageStats" onclick="switchTab(this)">
+        <span class="tab-icon">📊</span>
+        统计
+    </div>
+    <div class="tab" data-page="pageBudget" onclick="switchTab(this)">
+        <span class="tab-icon">💳</span>
+        预算
+    </div>
+</div>
+
+<!-- ─── Add Transaction Modal ─── -->
+<div class="modal-overlay" id="addModal">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title" id="modalTitle">记一笔</div>
+            <div class="modal-close" onclick="closeModal()">✕</div>
+        </div>
+
+        <div class="form-group">
+            <div class="type-toggle">
+                <div class="type-btn expense active" onclick="setType('expense')">支出</div>
+                <div class="type-btn income" onclick="setType('income')">收入</div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">金额</label>
+            <input type="number" class="form-input" id="inputAmount" placeholder="0.00"
+                   inputmode="decimal" step="0.01" min="0">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">分类</label>
+            <div class="category-grid" id="categoryGrid"></div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">备注</label>
+            <input type="text" class="form-input" id="inputNote" placeholder="可选备注...">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">日期</label>
+            <input type="date" class="form-input" id="inputDate">
+        </div>
+
+        <button class="submit-btn" id="submitBtn" onclick="submitTransaction()">保存</button>
+    </div>
+</div>
+
+<script>
+// ── State ──
+let currentMonth = new Date().toISOString().slice(0, 7);
+let categories = [];
+let transactions = [];
+let stats = {};
+let currentType = 'expense';
+let selectedCategoryId = null;
+let editingTxId = null;
+
+// ── Init ──
+async function init() {
+    updateMonthLabel();
+    await loadCategories();
+    await Promise.all([loadTransactions(), loadStats()]);
+}
+
+// ── API ──
+async function api(path, opts) {
+    const res = await fetch(path, {
+        headers: { 'Content-Type': 'application/json' },
+        ...opts,
+        body: opts?.body ? JSON.stringify(opts.body) : undefined,
+    });
+    return res.json();
+}
+
+// ── Month Navigation ──
+function updateMonthLabel() {
+    const [y, m] = currentMonth.split('-');
+    document.getElementById('monthLabel').textContent = `${y}年${parseInt(m)}月`;
+}
+
+function changeMonth(delta) {
+    const [y, m] = currentMonth.split('-').map(Number);
+    const d = new Date(y, m - 1 + delta, 1);
+    currentMonth = d.toISOString().slice(0, 7);
+    updateMonthLabel();
+    loadTransactions();
+    loadStats();
+    loadBudgets();
+}
+
+// ── Load Data ──
+async function loadCategories() {
+    categories = await api('/api/categories');
+    renderCategoryGrid();
+}
+
+async function loadTransactions() {
+    transactions = await api(`/api/transactions?month=${currentMonth}`);
+    renderTransactions();
+    renderSummary();
+}
+
+async function loadStats() {
+    stats = await api(`/api/stats?month=${currentMonth}`);
+    renderStats();
+}
+
+async function loadBudgets() {
+    const budgets = await api(`/api/budgets?month=${currentMonth}`);
+    renderBudgets(budgets);
+}
+
+// ── Render Summary ──
+function renderSummary() {
+    let income = 0, expense = 0;
+    for (const tx of transactions) {
+        if (tx.type === 'income') income += tx.amount;
+        else expense += tx.amount;
+    }
+    document.getElementById('balanceAmount').textContent = formatMoney(income - expense);
+    document.getElementById('incomeAmount').textContent = formatMoney(income);
+    document.getElementById('expenseAmount').textContent = formatMoney(expense);
+}
+
+// ── Render Transactions ──
+function renderTransactions() {
+    const container = document.getElementById('txList');
+    if (transactions.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="icon">📭</div>
+                <p>本月暂无记录</p>
+                <p style="margin-top:4px">点击 + 开始记账</p>
+            </div>`;
+        return;
+    }
+
+    // Group by date
+    const groups = {};
+    for (const tx of transactions) {
+        if (!groups[tx.date]) groups[tx.date] = [];
+        groups[tx.date].push(tx);
+    }
+
+    let html = '';
+    for (const [date, txs] of Object.entries(groups)) {
+        const dayTotal = txs.reduce((s, t) =>
+            s + (t.type === 'expense' ? -t.amount : t.amount), 0);
+        const dateObj = new Date(date + 'T00:00:00');
+        const weekday = ['日','一','二','三','四','五','六'][dateObj.getDay()];
+        html += `<div class="tx-group-header">
+            <span>${date.slice(5)} 星期${weekday}</span>
+            <span>${dayTotal >= 0 ? '+' : ''}${formatMoney(dayTotal)}</span>
+        </div>`;
+
+        for (const tx of txs) {
+            html += `
+            <div class="tx-item" onclick="editTransaction(${tx.id})">
+                <div class="tx-icon" style="background:${tx.categoryColor}22">
+                    ${tx.categoryIcon}
+                </div>
+                <div class="tx-info">
+                    <div class="tx-category">${tx.categoryName}</div>
+                    ${tx.note ? `<div class="tx-note">${escapeHtml(tx.note)}</div>` : ''}
+                </div>
+                <div class="tx-amount ${tx.type}">
+                    ${tx.type === 'income' ? '+' : '-'}${formatMoney(tx.amount)}
+                </div>
+            </div>`;
+        }
+    }
+    container.innerHTML = html;
+}
+
+// ── Render Stats ──
+function renderStats() {
+    document.getElementById('statsExpense').textContent =
+        formatMoney(stats.expense || 0);
+
+    const expenseCats = (stats.categories || []).filter(c => c.type === 'expense');
+    const incomeCats = (stats.categories || []).filter(c => c.type === 'income');
+
+    document.getElementById('categoryChart').innerHTML = renderBarChart(expenseCats);
+    document.getElementById('incomeCategoryChart').innerHTML = renderBarChart(incomeCats);
+}
+
+function renderBarChart(items) {
+    if (items.length === 0) {
+        return '<div class="chart-container"><div style="color:var(--text2);text-align:center;padding:20px;font-size:14px;">暂无数据</div></div>';
+    }
+    const max = Math.max(...items.map(i => i.total));
+    const total = items.reduce((s, i) => s + i.total, 0);
+    let html = '<div class="chart-container"><div class="bar-chart">';
+    for (const item of items) {
+        const pct = max > 0 ? (item.total / max * 100) : 0;
+        const share = total > 0 ? (item.total / total * 100).toFixed(1) : 0;
+        html += `
+        <div class="bar-row">
+            <div class="bar-label">${item.icon} ${item.name}</div>
+            <div class="bar-track">
+                <div class="bar-fill" style="width:${pct}%;background:${item.color}"></div>
+            </div>
+            <div class="bar-value">${formatMoney(item.total)} (${share}%)</div>
+        </div>`;
+    }
+    html += '</div></div>';
+    return html;
+}
+
+// ── Render Budgets ──
+function renderBudgets(budgets) {
+    const container = document.getElementById('budgetList');
+    if (!budgets || budgets.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="icon">💳</div>
+                <p>暂未设置预算</p>
+            </div>`;
+        return;
+    }
+    let html = '';
+    for (const b of budgets) {
+        const pct = Math.min(b.spent / b.amount * 100, 100);
+        const isOver = b.spent > b.amount;
+        html += `
+        <div class="budget-card">
+            <div class="budget-header">
+                <div class="budget-cat">
+                    <span>${b.category_icon || '📦'}</span>
+                    <span>${b.category_name || '总预算'}</span>
+                </div>
+                <div class="budget-amounts">
+                    ${formatMoney(b.spent)} / ${formatMoney(b.amount)}
+                </div>
+            </div>
+            <div class="budget-bar">
+                <div class="budget-fill ${isOver ? 'budget-over' : ''}"
+                     style="width:${pct}%;background:${isOver ? '' : (b.category_color || 'var(--accent)')}"></div>
+            </div>
+        </div>`;
+    }
+    container.innerHTML = html;
+}
+
+// ── Category Grid ──
+function renderCategoryGrid() {
+    const grid = document.getElementById('categoryGrid');
+    const filtered = categories.filter(c => c.type === currentType);
+    grid.innerHTML = filtered.map(c => `
+        <div class="cat-btn ${selectedCategoryId === c.id ? 'selected' : ''}"
+             onclick="selectCategory(${c.id})">
+            <span class="cat-icon">${c.icon}</span>
+            <span class="cat-name">${c.name}</span>
+        </div>
+    `).join('');
+}
+
+function selectCategory(id) {
+    selectedCategoryId = id;
+    renderCategoryGrid();
+}
+
+// ── Modal ──
+function openAddModal() {
+    editingTxId = null;
+    document.getElementById('modalTitle').textContent = '记一笔';
+    document.getElementById('inputAmount').value = '';
+    document.getElementById('inputNote').value = '';
+    document.getElementById('inputDate').value = new Date().toISOString().slice(0, 10);
+    setType('expense');
+    selectedCategoryId = null;
+    renderCategoryGrid();
+    document.getElementById('addModal').classList.add('active');
+    setTimeout(() => document.getElementById('inputAmount').focus(), 300);
+}
+
+function editTransaction(id) {
+    const tx = transactions.find(t => t.id === id);
+    if (!tx) return;
+    editingTxId = id;
+    document.getElementById('modalTitle').textContent = '编辑';
+    document.getElementById('inputAmount').value = tx.amount;
+    document.getElementById('inputNote').value = tx.note;
+    document.getElementById('inputDate').value = tx.date;
+    setType(tx.type);
+    selectedCategoryId = tx.categoryId;
+    renderCategoryGrid();
+    document.getElementById('addModal').classList.add('active');
+}
+
+function closeModal() {
+    document.getElementById('addModal').classList.remove('active');
+}
+
+function setType(type) {
+    currentType = type;
+    document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector(`.type-btn.${type}`).classList.add('active');
+    selectedCategoryId = null;
+    renderCategoryGrid();
+}
+
+async function submitTransaction() {
+    const amount = parseFloat(document.getElementById('inputAmount').value);
+    const note = document.getElementById('inputNote').value.trim();
+    const date = document.getElementById('inputDate').value;
+
+    if (!amount || amount <= 0 || !selectedCategoryId) return;
+
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+
+    const body = { amount, type: currentType, categoryId: selectedCategoryId, note, date };
+
+    if (editingTxId) {
+        await api(`/api/transactions/${editingTxId}`, { method: 'PUT', body });
+    } else {
+        await api('/api/transactions', { method: 'POST', body });
+    }
+
+    btn.disabled = false;
+    closeModal();
+    await Promise.all([loadTransactions(), loadStats()]);
+}
+
+// ── Tabs ──
+function switchTab(el) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    const pageId = el.dataset.page;
+    document.getElementById(pageId).classList.add('active');
+
+    if (pageId === 'pageStats') loadStats();
+    if (pageId === 'pageBudget') loadBudgets();
+}
+
+// ── Helpers ──
+function formatMoney(n) {
+    return '¥' + Math.abs(n).toFixed(2);
+}
+
+function escapeHtml(s) {
+    const div = document.createElement('div');
+    div.textContent = s;
+    return div.innerHTML;
+}
+
+// Click outside modal to close
+document.getElementById('addModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
+
+// ── Start ──
+init();
+</script>
+</body>
+</html>
