@@ -2,360 +2,652 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
     <title>TodoApp</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #0f0f14;
+            --bg2: #1a1a24;
+            --bg3: #252535;
+            --text: #e8e8f0;
+            --text2: #9898b0;
+            --accent: #6366f1;
+            --green: #22c55e;
+            --red: #ef4444;
+            --orange: #f97316;
+            --yellow: #eab308;
+            --radius: 14px;
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f5f7;
-            color: #1d1d1f;
-            min-height: 100vh;
-            padding: 24px;
-            padding-top: max(24px, env(safe-area-inset-top));
-            padding-bottom: max(24px, env(safe-area-inset-bottom));
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100dvh;
+            padding-top: var(--safe-top);
+            padding-bottom: calc(60px + var(--safe-bottom));
         }
 
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
+        /* ── Header ── */
+        .header {
+            padding: 16px 20px 0;
+        }
+        .header h1 { font-size: 32px; font-weight: 700; }
+        .header-sub { font-size: 13px; color: var(--text2); margin-top: 2px; }
+
+        /* ── Progress ── */
+        .progress-section {
+            padding: 16px 20px;
+        }
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: var(--text2);
+            margin-bottom: 8px;
+        }
+        .progress-bar {
+            height: 6px;
+            background: var(--bg3);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--green));
+            border-radius: 3px;
+            transition: width 0.5s ease;
         }
 
-        header {
-            text-align: center;
-            margin-bottom: 32px;
+        /* ── Filters ── */
+        .filters {
+            display: flex;
+            gap: 6px;
+            padding: 0 20px 12px;
+            overflow-x: auto;
+        }
+        .filter-btn {
+            padding: 6px 14px;
+            background: var(--bg2);
+            border: none;
+            border-radius: 20px;
+            color: var(--text2);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .filter-btn.active {
+            background: var(--accent);
+            color: #fff;
         }
 
-        header h1 {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #1d1d1f;
+        /* ── Input ── */
+        .input-section {
+            padding: 0 16px 16px;
         }
-
-        header p {
-            font-size: 0.9rem;
-            color: #86868b;
-            margin-top: 4px;
+        .input-card {
+            background: var(--bg2);
+            border-radius: var(--radius);
+            padding: 14px;
         }
-
         .input-row {
             display: flex;
-            gap: 8px;
-            margin-bottom: 24px;
+            gap: 10px;
         }
-
-        .input-row input {
+        .input-row input[type="text"] {
             flex: 1;
-            padding: 12px 16px;
-            border: 1px solid #d2d2d7;
+            background: var(--bg3);
+            border: 2px solid transparent;
             border-radius: 10px;
+            padding: 12px 14px;
             font-size: 16px;
-            background: #fff;
+            color: var(--text);
             outline: none;
             transition: border-color 0.2s;
         }
-
-        .input-row input:focus {
-            border-color: #007AFF;
-        }
-
-        .input-row button {
-            padding: 12px 24px;
-            background: #007AFF;
-            color: #fff;
+        .input-row input[type="text"]:focus { border-color: var(--accent); }
+        .input-row input[type="text"]::placeholder { color: var(--text2); opacity: 0.5; }
+        .add-btn {
+            width: 48px;
+            height: 48px;
+            background: var(--accent);
             border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-
-        .input-row button:active {
-            opacity: 0.8;
-        }
-
-        .toolbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            font-size: 0.85rem;
-            color: #86868b;
-        }
-
-        .toolbar button {
-            background: none;
-            border: none;
-            color: #007AFF;
-            font-size: 0.85rem;
-            cursor: pointer;
-            padding: 4px 0;
-        }
-
-        .toolbar button:hover {
-            text-decoration: underline;
-        }
-
-        .todo-list {
-            background: #fff;
             border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: transform 0.15s;
         }
+        .add-btn:active { transform: scale(0.9); }
+
+        .input-extras {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        .priority-pills {
+            display: flex;
+            gap: 4px;
+        }
+        .pill {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1.5px solid var(--bg3);
+            background: transparent;
+            color: var(--text2);
+            transition: all 0.2s;
+        }
+        .pill.high.selected { border-color: var(--red); color: var(--red); background: rgba(239,68,68,0.1); }
+        .pill.medium.selected { border-color: var(--orange); color: var(--orange); background: rgba(249,115,22,0.1); }
+        .pill.low.selected { border-color: var(--green); color: var(--green); background: rgba(34,197,94,0.1); }
+        .date-input {
+            background: var(--bg3);
+            border: none;
+            border-radius: 12px;
+            padding: 4px 10px;
+            font-size: 12px;
+            color: var(--text2);
+            outline: none;
+        }
+
+        /* ── Todo List ── */
+        .todo-list { padding: 0 16px; }
 
         .todo-item {
             display: flex;
             align-items: center;
+            background: var(--bg2);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 8px;
             gap: 12px;
-            padding: 14px 16px;
-            border-bottom: 1px solid #f0f0f0;
-            transition: background 0.15s;
-        }
-
-        .todo-item:last-child {
-            border-bottom: none;
-        }
-
-        .todo-item:hover {
-            background: #fafafa;
-        }
-
-        .todo-item input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            accent-color: #007AFF;
+            transition: transform 0.15s, opacity 0.3s;
             cursor: pointer;
         }
+        .todo-item:active { transform: scale(0.98); }
+        .todo-item.completing {
+            animation: completeAnim 0.4s ease forwards;
+        }
+        @keyframes completeAnim {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
 
-        .todo-item .text {
-            flex: 1;
+        .check-circle {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid var(--bg3);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        .todo-item.done .check-circle {
+            border-color: var(--green);
+            background: var(--green);
+            color: #fff;
+        }
+        .check-circle::after { content: ''; }
+        .todo-item.done .check-circle::after { content: '✓'; }
+
+        .todo-content { flex: 1; min-width: 0; }
+        .todo-text {
             font-size: 15px;
+            font-weight: 500;
             line-height: 1.4;
+            transition: all 0.3s;
         }
-
-        .todo-item.done .text {
+        .todo-item.done .todo-text {
             text-decoration: line-through;
-            color: #86868b;
+            color: var(--text2);
         }
+        .todo-meta {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+            align-items: center;
+        }
+        .priority-badge {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .priority-badge.high { background: rgba(239,68,68,0.15); color: var(--red); }
+        .priority-badge.medium { background: rgba(249,115,22,0.15); color: var(--orange); }
+        .priority-badge.low { background: rgba(34,197,94,0.15); color: var(--green); }
+        .due-badge {
+            font-size: 11px;
+            color: var(--text2);
+        }
+        .due-badge.overdue { color: var(--red); }
+        .due-badge.today { color: var(--yellow); }
 
-        .todo-item .delete-btn {
+        .delete-btn {
+            width: 32px;
+            height: 32px;
             background: none;
             border: none;
-            color: #ff3b30;
+            color: var(--text2);
             font-size: 18px;
             cursor: pointer;
-            padding: 4px 8px;
-            opacity: 0;
-            transition: opacity 0.15s;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.5;
+            transition: all 0.2s;
+            flex-shrink: 0;
         }
+        .delete-btn:active { opacity: 1; color: var(--red); background: rgba(239,68,68,0.1); }
 
-        .todo-item:hover .delete-btn {
-            opacity: 1;
-        }
-
+        /* ── Empty State ── */
         .empty-state {
             text-align: center;
-            padding: 48px 24px;
-            color: #86868b;
+            padding: 60px 20px;
+            color: var(--text2);
         }
+        .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+        .empty-state p { font-size: 14px; }
 
-        .empty-state .icon {
-            font-size: 48px;
-            margin-bottom: 12px;
+        /* ── Footer ── */
+        .footer-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg2);
+            border-top: 1px solid var(--bg3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+            padding-bottom: calc(12px + var(--safe-bottom));
+            font-size: 13px;
+            color: var(--text2);
         }
-
-        .copy-btn {
+        .footer-bar button {
             background: none;
             border: none;
-            color: #86868b;
-            font-size: 14px;
+            color: var(--red);
+            font-size: 13px;
             cursor: pointer;
             padding: 4px 8px;
-            opacity: 0;
-            transition: opacity 0.15s;
+            border-radius: 6px;
         }
+        .footer-bar button:active { background: rgba(239,68,68,0.1); }
 
-        .todo-item:hover .copy-btn {
-            opacity: 1;
+        /* ── Edit Modal ── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 200;
+            align-items: flex-end;
+            justify-content: center;
         }
-
-        footer {
-            text-align: center;
-            margin-top: 32px;
-            font-size: 0.8rem;
-            color: #86868b;
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: var(--bg2);
+            border-radius: 20px 20px 0 0;
+            padding: 20px 20px calc(20px + var(--safe-bottom));
+            width: 100%;
+            max-width: 500px;
+            animation: slideUp 0.3s ease;
         }
-
-        footer strong {
-            color: #1d1d1f;
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
         }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .modal-title { font-size: 18px; font-weight: 600; }
+        .modal-close {
+            width: 32px; height: 32px;
+            background: var(--bg3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            color: var(--text2);
+        }
+        .form-group { margin-bottom: 14px; }
+        .form-label { font-size: 13px; color: var(--text2); margin-bottom: 6px; display: block; }
+        .form-input {
+            width: 100%;
+            background: var(--bg3);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 16px;
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-input:focus { border-color: var(--accent); }
+        .save-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 4px;
+        }
+        .save-btn:active { opacity: 0.8; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>TodoApp</h1>
-            <p>Powered by Tano &mdash; on-device Bun + SQLite</p>
-        </header>
 
+<div class="header">
+    <h1>Todo</h1>
+    <div class="header-sub">Powered by Tano — on-device Bun + SQLite</div>
+</div>
+
+<!-- Progress -->
+<div class="progress-section">
+    <div class="progress-info">
+        <span id="progressLabel">0 of 0 done</span>
+        <span id="progressPct">0%</span>
+    </div>
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill" style="width:0%"></div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="filters">
+    <button class="filter-btn active" data-filter="all" onclick="setFilter('all', this)">All</button>
+    <button class="filter-btn" data-filter="active" onclick="setFilter('active', this)">Active</button>
+    <button class="filter-btn" data-filter="done" onclick="setFilter('done', this)">Done</button>
+    <button class="filter-btn" data-filter="high" onclick="setFilter('high', this)">🔴 High</button>
+    <button class="filter-btn" data-filter="today" onclick="setFilter('today', this)">📅 Today</button>
+</div>
+
+<!-- Input -->
+<div class="input-section">
+    <div class="input-card">
         <div class="input-row">
-            <input type="text" id="todo-input" placeholder="What needs to be done?" />
-            <button onclick="addTodo()">Add</button>
+            <input type="text" id="todoInput" placeholder="What needs to be done?" />
+            <button class="add-btn" onclick="addTodo()">+</button>
         </div>
-
-        <div class="toolbar" id="toolbar" style="display: none;">
-            <span id="todo-count"></span>
-            <button onclick="clearDone()">Clear completed</button>
+        <div class="input-extras">
+            <div class="priority-pills">
+                <span class="pill high" onclick="setPriority('high', this)">High</span>
+                <span class="pill medium selected" onclick="setPriority('medium', this)">Medium</span>
+                <span class="pill low" onclick="setPriority('low', this)">Low</span>
+            </div>
+            <input type="date" class="date-input" id="dueDateInput">
         </div>
+    </div>
+</div>
 
-        <div class="todo-list" id="todo-list">
-            <div class="empty-state" id="empty-state">
-                <div class="icon">&#9745;</div>
-                <p>No todos yet. Add one above!</p>
+<!-- List -->
+<div class="todo-list" id="todoList"></div>
+
+<!-- Footer -->
+<div class="footer-bar">
+    <span id="remainingLabel">0 remaining</span>
+    <button onclick="clearDone()">Clear completed</button>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="editModal">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title">Edit Todo</div>
+            <div class="modal-close" onclick="closeEdit()">✕</div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Task</label>
+            <input type="text" class="form-input" id="editText">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Priority</label>
+            <div class="priority-pills" id="editPriorityPills">
+                <span class="pill high" onclick="setEditPriority('high')">High</span>
+                <span class="pill medium" onclick="setEditPriority('medium')">Medium</span>
+                <span class="pill low" onclick="setEditPriority('low')">Low</span>
             </div>
         </div>
-
-        <footer>
-            <p>Built with <strong>Tano</strong> &mdash; on-device Bun server + WebView</p>
-            <p style="margin-top: 4px;">Uses <strong>@tano/plugin-sqlite</strong> for persistence
-                &amp; <strong>@tano/plugin-clipboard</strong> for copy</p>
-        </footer>
+        <div class="form-group">
+            <label class="form-label">Due Date</label>
+            <input type="date" class="form-input" id="editDueDate">
+        </div>
+        <button class="save-btn" onclick="saveEdit()">Save</button>
     </div>
+</div>
 
-    <script>
-        const API = '/api/todos';
-        let todos = [];
+<script>
+const API = '/api/todos';
+let todos = [];
+let currentFilter = 'all';
+let newPriority = 'medium';
+let editingId = null;
+let editPriority = 'medium';
 
-        const input = document.getElementById('todo-input');
-        const listEl = document.getElementById('todo-list');
-        const emptyEl = document.getElementById('empty-state');
-        const toolbarEl = document.getElementById('toolbar');
-        const countEl = document.getElementById('todo-count');
+const todoInput = document.getElementById('todoInput');
+todoInput.addEventListener('keydown', e => { if (e.key === 'Enter') addTodo(); });
 
-        // Listen for Enter key
-        input.addEventListener('keydown', e => {
-            if (e.key === 'Enter') addTodo();
-        });
+// ── API ──
+async function api(path, opts) {
+    const res = await fetch(path, {
+        headers: { 'Content-Type': 'application/json' },
+        ...opts,
+        body: opts?.body ? JSON.stringify(opts.body) : undefined,
+    });
+    return res.json();
+}
 
-        async function loadTodos() {
-            try {
-                const res = await fetch(API);
-                todos = await res.json();
-                render();
-            } catch (err) {
-                console.error('Failed to load todos:', err);
-            }
+async function loadTodos() {
+    todos = await api(API);
+    render();
+}
+
+async function addTodo() {
+    const text = todoInput.value.trim();
+    if (!text) return;
+    const dueDate = document.getElementById('dueDateInput').value || null;
+    const todo = await api(API, {
+        method: 'POST',
+        body: { text, priority: newPriority, dueDate },
+    });
+    todos.unshift(todo);
+    todoInput.value = '';
+    document.getElementById('dueDateInput').value = '';
+    render();
+}
+
+async function toggleTodo(id, e) {
+    e.stopPropagation();
+    const todo = todos.find(t => t.id === id);
+    if (!todo) return;
+
+    // Animate
+    const el = document.querySelector(`[data-id="${id}"]`);
+    if (el) el.classList.add('completing');
+
+    const updated = await api(`${API}/${id}`, {
+        method: 'PATCH',
+        body: { done: !todo.done },
+    });
+    todos = todos.map(t => t.id === id ? updated : t);
+    setTimeout(() => render(), 300);
+}
+
+async function deleteTodo(id, e) {
+    e.stopPropagation();
+    await api(`${API}/${id}`, { method: 'DELETE' });
+    todos = todos.filter(t => t.id !== id);
+    render();
+}
+
+async function clearDone() {
+    todos = await api(`${API}/clear-done`, { method: 'POST' });
+    render();
+}
+
+// ── Filter ──
+function setFilter(filter, el) {
+    currentFilter = filter;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    render();
+}
+
+function getFiltered() {
+    const today = new Date().toISOString().slice(0, 10);
+    switch (currentFilter) {
+        case 'active': return todos.filter(t => !t.done);
+        case 'done': return todos.filter(t => t.done);
+        case 'high': return todos.filter(t => t.priority === 'high' && !t.done);
+        case 'today': return todos.filter(t => t.dueDate === today && !t.done);
+        default: return todos;
+    }
+}
+
+// ── Priority ──
+function setPriority(p, el) {
+    newPriority = p;
+    document.querySelectorAll('.input-extras .pill').forEach(b => b.classList.remove('selected'));
+    el.classList.add('selected');
+}
+
+// ── Edit Modal ──
+function openEdit(id) {
+    const todo = todos.find(t => t.id === id);
+    if (!todo) return;
+    editingId = id;
+    editPriority = todo.priority;
+    document.getElementById('editText').value = todo.text;
+    document.getElementById('editDueDate').value = todo.dueDate || '';
+    updateEditPriorityPills();
+    document.getElementById('editModal').classList.add('active');
+}
+
+function closeEdit() {
+    document.getElementById('editModal').classList.remove('active');
+    editingId = null;
+}
+
+function setEditPriority(p) {
+    editPriority = p;
+    updateEditPriorityPills();
+}
+
+function updateEditPriorityPills() {
+    document.querySelectorAll('#editPriorityPills .pill').forEach(el => {
+        el.classList.toggle('selected', el.textContent.trim().toLowerCase() === editPriority);
+    });
+}
+
+async function saveEdit() {
+    if (!editingId) return;
+    const text = document.getElementById('editText').value.trim();
+    if (!text) return;
+    const dueDate = document.getElementById('editDueDate').value || null;
+    const updated = await api(`${API}/${editingId}`, {
+        method: 'PATCH',
+        body: { text, priority: editPriority, dueDate },
+    });
+    todos = todos.map(t => t.id === editingId ? updated : t);
+    closeEdit();
+    render();
+}
+
+document.getElementById('editModal').addEventListener('click', function(e) {
+    if (e.target === this) closeEdit();
+});
+
+// ── Render ──
+function render() {
+    const total = todos.length;
+    const doneCount = todos.filter(t => t.done).length;
+    const remaining = total - doneCount;
+    const pct = total > 0 ? Math.round(doneCount / total * 100) : 0;
+
+    document.getElementById('progressLabel').textContent = `${doneCount} of ${total} done`;
+    document.getElementById('progressPct').textContent = `${pct}%`;
+    document.getElementById('progressFill').style.width = `${pct}%`;
+    document.getElementById('remainingLabel').textContent = `${remaining} remaining`;
+
+    const filtered = getFiltered();
+    const container = document.getElementById('todoList');
+
+    if (filtered.length === 0) {
+        const msg = total === 0 ? 'No todos yet. Add one above!' :
+                    currentFilter === 'done' ? 'No completed todos.' :
+                    currentFilter === 'high' ? 'No high priority todos.' :
+                    currentFilter === 'today' ? 'Nothing due today.' : 'All done!';
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="icon">${total === 0 ? '📝' : '✨'}</div>
+                <p>${msg}</p>
+            </div>`;
+        return;
+    }
+
+    const today = new Date().toISOString().slice(0, 10);
+
+    container.innerHTML = filtered.map(todo => {
+        let dueBadge = '';
+        if (todo.dueDate) {
+            const isOverdue = !todo.done && todo.dueDate < today;
+            const isToday = todo.dueDate === today;
+            const cls = isOverdue ? 'overdue' : isToday ? 'today' : '';
+            const label = isOverdue ? 'Overdue' : isToday ? 'Today' : todo.dueDate.slice(5);
+            dueBadge = `<span class="due-badge ${cls}">📅 ${label}</span>`;
         }
 
-        async function addTodo() {
-            const text = input.value.trim();
-            if (!text) return;
-
-            try {
-                const res = await fetch(API, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text })
-                });
-                const todo = await res.json();
-                todos.unshift(todo);
-                input.value = '';
-                render();
-            } catch (err) {
-                console.error('Failed to add todo:', err);
-            }
-        }
-
-        async function toggleTodo(id) {
-            const todo = todos.find(t => t.id === id);
-            if (!todo) return;
-
-            try {
-                const res = await fetch(`${API}/${id}`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ done: !todo.done })
-                });
-                const updated = await res.json();
-                todos = todos.map(t => t.id === id ? updated : t);
-                render();
-            } catch (err) {
-                console.error('Failed to toggle todo:', err);
-            }
-        }
-
-        async function deleteTodo(id) {
-            try {
-                await fetch(`${API}/${id}`, { method: 'DELETE' });
-                todos = todos.filter(t => t.id !== id);
-                render();
-            } catch (err) {
-                console.error('Failed to delete todo:', err);
-            }
-        }
-
-        async function clearDone() {
-            try {
-                const res = await fetch(`${API}/clear-done`, { method: 'POST' });
-                todos = await res.json();
-                render();
-            } catch (err) {
-                console.error('Failed to clear done:', err);
-            }
-        }
-
-        async function copyToClipboard(text) {
-            // Try native Tano clipboard plugin first, fall back to browser API
-            try {
-                if (window.Tano && window.Tano.invoke) {
-                    await window.Tano.invoke('clipboard', { action: 'write', text: text });
-                } else {
-                    await navigator.clipboard.writeText(text);
-                }
-            } catch (err) {
-                console.error('Failed to copy:', err);
-            }
-        }
-
-        function render() {
-            const doneCount = todos.filter(t => t.done).length;
-            const remaining = todos.length - doneCount;
-
-            if (todos.length === 0) {
-                emptyEl.style.display = 'block';
-                toolbarEl.style.display = 'none';
-                listEl.innerHTML = '';
-                listEl.appendChild(emptyEl);
-                return;
-            }
-
-            toolbarEl.style.display = 'flex';
-            countEl.textContent = `${remaining} remaining${doneCount > 0 ? `, ${doneCount} done` : ''}`;
-
-            listEl.innerHTML = todos.map(todo => `
-                <div class="todo-item ${todo.done ? 'done' : ''}">
-                    <input type="checkbox" ${todo.done ? 'checked' : ''} onchange="toggleTodo(${todo.id})" />
-                    <span class="text">${escapeHtml(todo.text)}</span>
-                    <button class="copy-btn" onclick="copyToClipboard('${escapeJs(todo.text)}')" title="Copy to clipboard">&#128203;</button>
-                    <button class="delete-btn" onclick="deleteTodo(${todo.id})" title="Delete">&times;</button>
+        return `
+        <div class="todo-item ${todo.done ? 'done' : ''}" data-id="${todo.id}" onclick="openEdit(${todo.id})">
+            <div class="check-circle" onclick="toggleTodo(${todo.id}, event)"></div>
+            <div class="todo-content">
+                <div class="todo-text">${escapeHtml(todo.text)}</div>
+                <div class="todo-meta">
+                    <span class="priority-badge ${todo.priority}">${todo.priority}</span>
+                    ${dueBadge}
                 </div>
-            `).join('');
-        }
+            </div>
+            <button class="delete-btn" onclick="deleteTodo(${todo.id}, event)">✕</button>
+        </div>`;
+    }).join('');
+}
 
-        function escapeHtml(str) {
-            const div = document.createElement('div');
-            div.textContent = str;
-            return div.innerHTML;
-        }
+function escapeHtml(s) {
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+}
 
-        function escapeJs(str) {
-            return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
-        }
-
-        // Initial load
-        loadTodos();
-    </script>
+loadTodos();
+</script>
 </body>
 </html>
